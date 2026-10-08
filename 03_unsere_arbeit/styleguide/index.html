@@ -317,10 +317,16 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .hero .fxwrap, .hero .top, .hero .bottom { opacity: 1 !important; transform: none !important; filter: none !important; }
   .hero .in, .hero .top, .hero .bottom { visibility: visible !important; }
   .hero .cue { display: none !important; }
-  .full { height: 1100px; break-before: page; }
-  .sub { break-after: avoid; break-inside: avoid; }
+  .hero::after, .full::after { display: none; }
+  .full { height: 1810px; break-before: page; }
+  .full .in { padding-bottom: 150px; }
+  .sub { break-after: avoid; break-inside: avoid; margin-top: 44px; }
+  .sub.pb { break-before: page; margin-top: 0; padding-top: 72px; }
   .keep { break-inside: avoid; }
-  .sec { break-before: page; padding: 72px 0; }
+  .sec { break-before: page; padding: 64px 0 16px; border: 0; }
+  .sec-head { margin-bottom: 32px; }
+  .sec.dark { min-height: 1810px; }
+  #downloads { min-height: 1656px; }
   .tile, .sw, .specimen, .mode, .pics, .apps > div, .akten li, .dl .box, .rules li, .pt, .moves > div, .verwandlung, .szene, .strip { break-inside: avoid; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .poster, .square, .story { box-shadow: none; }
@@ -342,7 +348,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
 <header class="hero">
   <div class="fxwrap" id="heroFx">
     <video id="heroVid" src="assets/video/hero-arme-720.mp4" crossorigin="anonymous" autoplay muted loop playsinline aria-hidden="true"></video>
-    <img class="poster print-only" src="assets/video/hero-arme-720.jpg" alt="">
+    <img class="poster print-only" src="assets/img/druck-titel.jpg" alt="">
   </div>
   <div class="top">
     <div class="kicker">Vorschlag für ein Erscheinungsbild</div>
@@ -429,7 +435,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       </div>
     </div>
 
-    <div class="sub"><div></div><h3>Varianten</h3></div>
+    <div class="sub pb"><div></div><h3>Varianten</h3></div>
     <div class="tiles t2 indent">
       <div><div class="tile l"><img src="assets/logo/TTGO_logo-zentriert_positiv.svg" alt="Logo zentriert"></div><div class="cap"><b>Zentriert · Standard</b>Für Plakate, Titelseiten, Programmhefte und alles, was eher hoch als breit ist.</div></div>
       <div><div class="tile d"><img src="assets/logo/TTGO_logo-quer_negativ.svg" alt="Logo quer"></div><div class="cap"><b>Quer</b>Für breite Formate: Website-Kopf, Banner, Briefbogen, Abspann.</div></div>
@@ -445,7 +451,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       <div><div class="tile photo"><img src="assets/logo/TTGO_logo-zentriert_weiss.svg" alt=""></div><div class="cap"><b>Einfarbig weiß</b>Auf Fotos und farbigen Flächen.</div></div>
     </div>
 
-    <div class="sub"><div></div><h3>Schutzraum</h3></div>
+    <div class="sub pb"><div></div><h3>Schutzraum</h3></div>
     <div class="cols indent clearrow">
       <div class="clear"><img src="assets/logo/TTGO_logo-quer_positiv.svg" alt="Logo mit Schutzraum"><span class="x" style="left:14px;top:50%;transform:translateY(-50%)">x</span><span class="x" style="top:12px;left:50%">x</span></div>
       <div>
@@ -643,7 +649,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
 <section class="full" aria-label="Vollbild mit Videoschleife und Nachbild">
   <div class="fxwrap" id="fullFx">
     <video id="fullVid" src="assets/video/nachbild-zeitlupe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video>
-    <img class="poster print-only" src="assets/video/nachbild-zeitlupe.jpg" alt="">
+    <img class="poster print-only" src="assets/img/druck-vollbild.jpg" alt="">
   </div>
   <div class="in"><div class="wrap">
     <div class="kicker" style="margin-bottom:16px;color:#c9c3b8">Vollbild mit Videoschleife · was sich bewegt, hinterlässt eine rote Spur</div>
