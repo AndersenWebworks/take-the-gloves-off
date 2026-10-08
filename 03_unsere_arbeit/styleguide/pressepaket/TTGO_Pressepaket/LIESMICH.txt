@@ -36,3 +36,21 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
   TTGO_loop_boden_zeitlupe_960x540.mp4          Bodenarbeit in Zeitlupe, 3,5-mal langsamer
   TTGO_loop_*.mp4 (übrige)                      stark verwischt, für Hintergründe
   Alle Schleifen laufen nahtlos und haben keinen Ton.
+
+05_Fotos
+  Zwölf Fotos von der Präsentation bei der schreib:maschine (Hamburg 2025) und aus den Proben,
+  schwarz-weiß, 3000 px auf der langen Seite. Das reicht für Presse, Programmheft und
+  Plakate bis etwa A3.
+  01  Sprung über der Gruppe           schreib:maschine, Hamburg 2025
+  02  Hebefigur im Sprung              schreib:maschine, Hamburg 2025
+  03  Ensemble in einer Reihe          schreib:maschine, Hamburg 2025
+  04  Tänzerin im Fallen               Probe
+  05  Menschenturm                     schreib:maschine, Hamburg 2025
+  06  Tänzerin im Sprung               Probe
+  07  Pyramide                         Probe
+  08  Gruppe am Boden                  Probe
+  09  Bodenarbeit                      Probe
+  10  Zwei Darsteller                  schreib:maschine, Hamburg 2025
+  11  Rückbeuge im Hebegriff           Probe
+  12  Ensemble mit gereckten Armen     schreib:maschine, Hamburg 2025
+  Die Fotonachweise werden ergänzt.
