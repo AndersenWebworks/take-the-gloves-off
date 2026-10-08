@@ -326,7 +326,8 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .sec { break-before: page; padding: 64px 0 16px; border: 0; }
   .sec-head { margin-bottom: 32px; }
   .sec.dark { min-height: 1810px; }
-  #downloads { min-height: 1656px; }
+  #downloads, .nur-bildschirm { display: none !important; }
+  #anwendungen { min-height: 1656px; }
   .tile, .sw, .specimen, .mode, .pics, .apps > div, .akten li, .dl .box, .rules li, .pt, .moves > div, .verwandlung, .szene, .strip { break-inside: avoid; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .poster, .square, .story { box-shadow: none; }
@@ -652,7 +653,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
     <img class="poster print-only" src="assets/img/druck-vollbild.jpg" alt="">
   </div>
   <div class="in"><div class="wrap">
-    <div class="kicker" style="margin-bottom:16px;color:#c9c3b8">Vollbild mit Videoschleife · was sich bewegt, hinterlässt eine rote Spur</div>
+    <div class="kicker" style="margin-bottom:16px;color:#c9c3b8"><span class="nur-bildschirm">Vollbild mit Videoschleife · was sich bewegt, hinterlässt eine rote Spur</span><span class="print-only">Vollbild · auf der Website als Videoschleife mit roter Nachbild-Spur</span></div>
     <div class="title q">We were not<br>like this <em>before</em></div>
   </div></div>
 </section>
@@ -680,7 +681,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       <div>
         <div class="box" style="cursor:crosshair"><div class="fxwrap" id="bendFx"><video id="bendVid" src="assets/video/biegen-gruppe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video><img class="poster print-only" src="assets/video/biegen-gruppe.jpg" alt=""></div></div>
         <h4>Das Bild biegt sich</h4>
-        <p>Ein senkrechter Streifen im Video verzieht sich wie der Stab im Zeichen, an der stärksten Stelle schimmert es rot. Der Streifen folgt langsam der Maus. So läuft auch der Kopf dieser Seite.</p>
+        <p>Ein senkrechter Streifen im Video verzieht sich wie der Stab im Zeichen, an der stärksten Stelle schimmert es rot. Der Streifen folgt langsam der Maus.<span class="nur-bildschirm"> So läuft auch der Kopf dieser Seite.</span></p>
       </div>
       <div>
         <div class="box"><div class="fxwrap" id="trailFx"><video id="trailVid" src="assets/video/nachbild-zeitlupe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video><img class="poster print-only" src="assets/video/nachbild-zeitlupe.jpg" alt=""></div></div>
