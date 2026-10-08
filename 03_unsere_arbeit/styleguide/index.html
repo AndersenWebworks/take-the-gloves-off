@@ -68,7 +68,9 @@ html.intro .hero .in, html.intro .hero .top, html.intro .hero .bottom, html.intr
 
 /* Navigation */
 nav.toc { position: sticky; top: 0; z-index: 10; background: var(--black); color: var(--white); }
-nav.toc .wrap { display: flex; gap: 22px; align-items: center; overflow-x: auto; height: 52px; white-space: nowrap; }
+nav.toc .wrap { display: flex; gap: 22px; align-items: center; overflow-x: auto; height: 52px; white-space: nowrap; scrollbar-width: none; }
+nav.toc .wrap::-webkit-scrollbar { display: none; }
+nav.toc .wrap.mehr { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
 nav.toc a { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; text-decoration: none; opacity: .75; }
 nav.toc a:hover { opacity: 1; color: #fff; }
 nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
@@ -145,6 +147,7 @@ nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
 .play .pt { background: var(--black); color: var(--white); aspect-ratio: 1; padding: 9% 9% 17%; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 .play .pt.p { background: var(--paper); color: var(--ink); }
 .play .pt.r { background: var(--red); color: #fff; }
+.play .pt .fitbox { width: 88%; }
 .fit { display: block; white-space: nowrap; font-weight: 850; text-transform: uppercase; line-height: .86; font-variation-settings: "wdth" 76; }
 .fit.red { color: var(--red); }
 /* Gestaucht und gedehnt: jede Zeile füllt genau die Breite, Breite und Größe steuert das Skript */
@@ -268,6 +271,16 @@ nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
 .dl li { padding: 9px 0; border-top: 1px solid #333; font-size: 15px; display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
 footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(--black); }
 
+/* Nach oben */
+.totop { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 30; width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(14,14,14,.92); color: #efebe3; border: 1px solid rgba(239,235,227,.3); cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .3s, transform .3s, visibility 0s .3s, border-color .2s; }
+.totop.on { opacity: 1; visibility: visible; transform: none; transition: opacity .3s, transform .3s, border-color .2s; }
+.totop:hover { border-color: #d22b1f; }
+.totop:focus-visible { outline: 2px solid #d22b1f; outline-offset: 3px; }
+.totop svg { width: 18px; height: 24px; }
+.totop .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) { .totop { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; } }
+@media print { .totop { display: none !important; } }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 .clearrow { grid-template-columns: auto 1fr; align-items: center; }
 .swatches.sw4 { grid-template-columns: repeat(4, 1fr); }
@@ -277,6 +290,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .indent { margin-left: 0; }
   .stufen { grid-template-columns: 1fr 1fr; }
   .t2, .t3, .t4, .markbig, .verwandlung, .swatches, .mode, .pics, .rules, .apps, .dl, .specimen, .hier .row, .play, .szene, .moves, .strip { grid-template-columns: 1fr; }
+  .moves { grid-template-columns: minmax(0, 1fr); }
   .strip .ph.big { grid-row: auto; min-height: 300px; }
   .clearrow, .apps.apps4 { grid-template-columns: 1fr; }
   .swatches.sw4 { grid-template-columns: 1fr 1fr; }
@@ -286,6 +300,15 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .hero .top .kicker:last-child, .hero .bottom .muted, .hero .cue { display: none; }
 }
 @page { size: 1280px 1810px; margin: 0; }
+@media screen and (max-width: 420px) {
+  .clear { display: block; padding: 30px; }
+  .clear img { width: 100%; }
+  .swatches.sw4 { grid-template-columns: 1fr; }
+  .sec-head h2 { font-size: 11vw; }
+  .dl { grid-template-columns: minmax(0, 1fr); }
+  .dl .box { padding: 22px; }
+  .dl li { grid-template-columns: 1fr; gap: 2px; }
+}
 @media print {
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-only { display: block; }
@@ -773,6 +796,8 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   </div>
 </footer>
 
+<button type="button" class="totop" aria-label="Nach oben"><svg viewBox="0 0 18 24" aria-hidden="true"><path d="M9 6V23" stroke="#d22b1f" stroke-width="3"/><path d="M2 10L9 3l7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/></svg></button>
+
 <script src="assets/js/figuren.js"></script>
 <script src="assets/js/morph.js"></script>
 <script src="assets/js/zeichen.js"></script>
@@ -920,6 +945,22 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
     }, 4200);
   }
   window.addEventListener('beforeprint', function () { bars.forEach(function (el) { set(el, false); }); });
+})();
+</script>
+<script>
+(function () {
+  var b = document.querySelector('.totop'); if (!b) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches, on = false;
+  function upd() { var s = window.scrollY > window.innerHeight * 0.9; if (s !== on) { on = s; b.classList.toggle('on', s); } }
+  window.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); b.blur(); });
+})();
+(function () {
+  // Menüleiste: rechts auslaufen lassen, solange sich weitere Punkte wischen lassen
+  var l = document.querySelector('nav.bar .links, nav.toc .wrap'); if (!l) return;
+  function upd() { l.classList.toggle('mehr', l.scrollLeft + l.clientWidth < l.scrollWidth - 2); }
+  l.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  if (document.fonts) document.fonts.ready.then(upd);
 })();
 </script>
 </body>

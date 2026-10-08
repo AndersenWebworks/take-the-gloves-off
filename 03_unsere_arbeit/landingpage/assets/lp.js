@@ -341,3 +341,19 @@
     if (!reduce) { tick(); setInterval(tick, 1400); }
   });
 })();
+
+(function () {
+  var b = document.querySelector('.totop'); if (!b) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches, on = false;
+  function upd() { var s = window.scrollY > window.innerHeight * 0.9; if (s !== on) { on = s; b.classList.toggle('on', s); } }
+  window.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); b.blur(); });
+})();
+
+(function () {
+  // Menüleiste: rechts auslaufen lassen, solange sich weitere Punkte wischen lassen
+  var l = document.querySelector('nav.bar .links, nav.toc .wrap'); if (!l) return;
+  function upd() { l.classList.toggle('mehr', l.scrollLeft + l.clientWidth < l.scrollWidth - 2); }
+  l.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  if (document.fonts) document.fonts.ready.then(upd);
+})();
