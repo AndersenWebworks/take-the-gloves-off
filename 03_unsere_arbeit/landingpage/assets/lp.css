@@ -268,7 +268,7 @@ footer a:hover { color: var(--white); }
 .sink::after { content: attr(data-text); position: absolute; inset: 0; background: var(--black); color: #2a2927; clip-path: inset(calc(100% - var(--p)) 0 0 0); }
 /* Don't you see? liegt unter einem Balken, der beim Abspielen abgezogen wird */
 .schwarz { background: linear-gradient(var(--ink), var(--ink)) right / 100% 100% no-repeat; padding: 0 .06em; margin-left: -.06em; transition: background-size 1.2s cubic-bezier(.7,0,.3,1); }
-.d-see.on .schwarz, .d-see.gesehen .schwarz { background-size: 0% 100%; }
+.d-see.on .schwarz { background-size: 0% 100%; }
 .d-t:hover .schwarz { background-image: linear-gradient(#45433f, #45433f); }
 
 @media (max-width: 900px) {

@@ -106,7 +106,7 @@
       audio.currentTime = audio.duration * (e.clientX - r.left) / r.width;
     });
   });
-  audio.addEventListener('play', function () { if (cur) { cur.classList.add('on', 'gesehen'); bend(); } });
+  audio.addEventListener('play', function () { if (cur) { cur.classList.add('on'); bend(); } });
   audio.addEventListener('pause', function () { if (cur) cur.classList.remove('on'); });
   audio.addEventListener('timeupdate', function () {
     if (!cur) return;
@@ -114,13 +114,13 @@
     cur._time.textContent = fmt(audio.currentTime);
     cur._bar.style.width = (100 * p) + '%';
     var sink = cur.querySelector('.sink');
-    if (sink) sink.style.setProperty('--p', (100 * p).toFixed(2) + '%');   // versinkt mit dem Song
+    if (sink) sink.style.setProperty('--p', (100 * Math.min(1, p * 3)).toFixed(2) + '%');   // nach einem Drittel ganz im Schwarz
   });
   audio.addEventListener('ended', function () {
     if (!cur) return;
     cur._bar.style.width = '0%'; cur._time.textContent = cur._time.getAttribute('data-total');
     var sink = cur.querySelector('.sink'); if (sink) sink.style.setProperty('--p', '0%');
-    cur.classList.remove('on', 'gesehen');
+    cur.classList.remove('on');
   });
 
   // Monster biegt sich, solange es läuft: die Buchstaben folgen einer langsamen S-Kurve
