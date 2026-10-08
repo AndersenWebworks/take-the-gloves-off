@@ -14,6 +14,7 @@
       im.alt = im.getAttribute('data-alt-' + l);
     });
     try { localStorage.setItem('ttgo-lang', l); } catch (e) {}
+    window.dispatchEvent(new Event('ttgo-lang'));
   }
   document.querySelectorAll('.lang button').forEach(function (b) {
     b.addEventListener('click', function () { setLang(b.getAttribute('data-set')); });
@@ -44,12 +45,20 @@
   // Schwärzung zum Antippen
   var bars = Array.prototype.slice.call(document.querySelectorAll('.rd'));
   var hints = document.querySelectorAll('.hint');
-  var lastUser = 0, silenceOver = false;
-  function set(el, open, ms) {
+  var lastUser = 0, silenceOver = false, jumping = false;
+  // Deutsche und englische Fassung eines Absatzes teilen sich ihre Balken, damit der Sprachwechsel nichts zurücksetzt
+  document.querySelectorAll('p[data-l="de"]').forEach(function (de) {
+    var en = de.nextElementSibling;
+    if (!en || en.getAttribute('data-l') !== 'en') return;
+    var a = de.querySelectorAll('.rd'), b = en.querySelectorAll('.rd');
+    if (a.length === b.length) a.forEach(function (el, i) { el._twin = b[i]; b[i]._twin = el; });
+  });
+  function set(el, open, ms, solo) {
     el.classList.toggle('open', open);
     el.setAttribute('aria-pressed', open ? 'true' : 'false');
     clearTimeout(el._t);
     if (open && ms && !silenceOver) el._t = setTimeout(function () { set(el, false); }, ms);
+    if (el._twin && !solo) set(el._twin, open, 0, true);
   }
   bars.forEach(function (el) {
     var act = function () {
@@ -68,24 +77,40 @@
       if (c.length) set(c[Math.floor(Math.random() * c.length)], true, 1400);
     }, 4200);
   }
-  // Beim letzten Song fallen alle Balken: Don't stay silent
+  // Beim letzten Song fallen alle Balken: Don't stay silent. Nur wenn man selbst dorthin scrollt, nicht beim Vorbeifliegen nach einem Menüsprung
   var fin = document.getElementById('final');
   if (fin && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (es, o) {
-      if (!es[0].isIntersecting) return;
+      if (!es[0].isIntersecting || jumping) return;
       silenceOver = true; o.disconnect();
-      bars.forEach(function (el, i) { setTimeout(function () { set(el, true); }, reduce ? 0 : 90 * i); });
+      bars.filter(function (el) { return el.offsetParent; }).forEach(function (el, i) { setTimeout(function () { set(el, true); }, reduce ? 0 : 90 * i); });
+      bars.forEach(function (el) { if (!el.offsetParent && !el._twin) set(el, true); });
     }, { threshold: 0.9 }).observe(fin);
   }
 
   // Songliste: 06, 12 und 13 öffnen sich zum Schriftspiel, sobald man dort ankommt
-  var auf = document.querySelectorAll('.songs li.auf');
+  var auf = document.querySelectorAll('.songs li.auf'), aio = null;
   if ('IntersectionObserver' in window && !reduce) {
-    var aio = new IntersectionObserver(function (es) {
+    aio = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); aio.unobserve(e.target); } });
     }, { rootMargin: '0px 0px -38% 0px' });
     auf.forEach(function (li) { aio.observe(li); });
   } else auf.forEach(function (li) { li.classList.add('on'); });
+
+  // Sprünge über Menü und Knöpfe: Songzeilen vor dem Ziel sofort öffnen, sonst wächst die Liste unterwegs und man landet zu früh
+  var jumpT = null;
+  function jumpEnd() { clearTimeout(jumpT); jumpT = setTimeout(function () { jumping = false; window.removeEventListener('scroll', jumpEnd); }, 200); }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    var t = a && a.getAttribute('href').length > 1 ? document.getElementById(a.getAttribute('href').slice(1)) : null;
+    if (!t) return;
+    var y = t.getBoundingClientRect().top;
+    Array.prototype.filter.call(auf, function (li) { return !li.classList.contains('on') && li.getBoundingClientRect().top < y; }).forEach(function (li) {
+      li.classList.add('sofort', 'on'); if (aio) aio.unobserve(li);
+      setTimeout(function () { li.classList.remove('sofort'); }, 50);
+    });
+    jumping = true; window.addEventListener('scroll', jumpEnd, { passive: true }); jumpEnd();
+  }, true);
 
   // Demos: der Titel ist der Knopf, immer nur einer spielt
   var audio = new Audio(), cur = null;
@@ -340,4 +365,20 @@
     }
     if (!reduce) { tick(); setInterval(tick, 1400); }
   });
+})();
+
+(function () {
+  var b = document.querySelector('.totop'); if (!b) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches, on = false;
+  function upd() { var s = window.scrollY > window.innerHeight * 0.9; if (s !== on) { on = s; b.classList.toggle('on', s); } }
+  window.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); b.blur(); });
+})();
+
+(function () {
+  // Menüleiste: rechts auslaufen lassen, solange sich weitere Punkte wischen lassen
+  var l = document.querySelector('nav.bar .links, nav.toc .wrap'); if (!l) return;
+  function upd() { l.classList.toggle('mehr', l.scrollLeft + l.clientWidth < l.scrollWidth - 2); }
+  l.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); window.addEventListener('ttgo-lang', upd); upd();
+  if (document.fonts) document.fonts.ready.then(upd);
 })();

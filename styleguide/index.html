@@ -69,7 +69,9 @@ html.intro .hero .in, html.intro .hero .top, html.intro .hero .bottom, html.intr
 
 /* Navigation */
 nav.toc { position: sticky; top: 0; z-index: 10; background: var(--black); color: var(--white); }
-nav.toc .wrap { display: flex; gap: 22px; align-items: center; overflow-x: auto; height: 52px; white-space: nowrap; }
+nav.toc .wrap { display: flex; gap: 22px; align-items: center; overflow-x: auto; height: 52px; white-space: nowrap; scrollbar-width: none; }
+nav.toc .wrap::-webkit-scrollbar { display: none; }
+nav.toc .wrap.mehr { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
 nav.toc a { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; text-decoration: none; opacity: .75; }
 nav.toc a:hover { opacity: 1; color: #fff; }
 nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
@@ -146,6 +148,7 @@ nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
 .play .pt { background: var(--black); color: var(--white); aspect-ratio: 1; padding: 9% 9% 17%; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 .play .pt.p { background: var(--paper); color: var(--ink); }
 .play .pt.r { background: var(--red); color: #fff; }
+.play .pt .fitbox { width: 88%; }
 .fit { display: block; white-space: nowrap; font-weight: 850; text-transform: uppercase; line-height: .86; font-variation-settings: "wdth" 76; }
 .fit.red { color: var(--red); }
 /* Gestaucht und gedehnt: jede Zeile füllt genau die Breite, Breite und Größe steuert das Skript */
@@ -269,6 +272,16 @@ nav.toc svg { width: 22px; height: 30px; color: var(--white); flex: none; }
 .dl li { padding: 9px 0; border-top: 1px solid #333; font-size: 15px; display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
 footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(--black); }
 
+/* Nach oben */
+.totop { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 30; width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(14,14,14,.92); color: #efebe3; border: 1px solid rgba(239,235,227,.3); cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .3s, transform .3s, visibility 0s .3s, border-color .2s; }
+.totop.on { opacity: 1; visibility: visible; transform: none; transition: opacity .3s, transform .3s, border-color .2s; }
+.totop:hover { border-color: #d22b1f; }
+.totop:focus-visible { outline: 2px solid #d22b1f; outline-offset: 3px; }
+.totop svg { width: 18px; height: 24px; }
+.totop .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) { .totop { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; } }
+@media print { .totop { display: none !important; } }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 .clearrow { grid-template-columns: auto 1fr; align-items: center; }
 .swatches.sw4 { grid-template-columns: repeat(4, 1fr); }
@@ -278,6 +291,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .indent { margin-left: 0; }
   .stufen { grid-template-columns: 1fr 1fr; }
   .t2, .t3, .t4, .markbig, .verwandlung, .swatches, .mode, .pics, .rules, .apps, .dl, .specimen, .hier .row, .play, .szene, .moves, .strip { grid-template-columns: 1fr; }
+  .moves { grid-template-columns: minmax(0, 1fr); }
   .strip .ph.big { grid-row: auto; min-height: 300px; }
   .clearrow, .apps.apps4 { grid-template-columns: 1fr; }
   .swatches.sw4 { grid-template-columns: 1fr 1fr; }
@@ -287,6 +301,15 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .hero .top .kicker:last-child, .hero .bottom .muted, .hero .cue { display: none; }
 }
 @page { size: 1280px 1810px; margin: 0; }
+@media screen and (max-width: 420px) {
+  .clear { display: block; padding: 30px; }
+  .clear img { width: 100%; }
+  .swatches.sw4 { grid-template-columns: 1fr; }
+  .sec-head h2 { font-size: 11vw; }
+  .dl { grid-template-columns: minmax(0, 1fr); }
+  .dl .box { padding: 22px; }
+  .dl li { grid-template-columns: 1fr; gap: 2px; }
+}
 @media print {
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-only { display: block; }
@@ -295,10 +318,17 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
   .hero .fxwrap, .hero .top, .hero .bottom { opacity: 1 !important; transform: none !important; filter: none !important; }
   .hero .in, .hero .top, .hero .bottom { visibility: visible !important; }
   .hero .cue { display: none !important; }
-  .full { height: 1100px; break-before: page; }
-  .sub { break-after: avoid; break-inside: avoid; }
+  .hero::after, .full::after { display: none; }
+  .full { height: 1810px; break-before: page; }
+  .full .in { padding-bottom: 150px; }
+  .sub { break-after: avoid; break-inside: avoid; margin-top: 44px; }
+  .sub.pb { break-before: page; margin-top: 0; padding-top: 72px; }
   .keep { break-inside: avoid; }
-  .sec { break-before: page; padding: 72px 0; }
+  .sec { break-before: page; padding: 64px 0 16px; border: 0; }
+  .sec-head { margin-bottom: 32px; }
+  .sec.dark { min-height: 1810px; }
+  #downloads, .nur-bildschirm { display: none !important; }
+  #anwendungen { min-height: 1656px; }
   .tile, .sw, .specimen, .mode, .pics, .apps > div, .akten li, .dl .box, .rules li, .pt, .moves > div, .verwandlung, .szene, .strip { break-inside: avoid; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .poster, .square, .story { box-shadow: none; }
@@ -320,7 +350,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
 <header class="hero">
   <div class="fxwrap" id="heroFx">
     <video id="heroVid" src="assets/video/hero-arme-720.mp4" crossorigin="anonymous" autoplay muted loop playsinline aria-hidden="true"></video>
-    <img class="poster print-only" src="assets/video/hero-arme-720.jpg" alt="">
+    <img class="poster print-only" src="assets/img/druck-titel.jpg" alt="">
   </div>
   <div class="top">
     <div class="kicker">Vorschlag für ein Erscheinungsbild</div>
@@ -407,7 +437,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       </div>
     </div>
 
-    <div class="sub"><div></div><h3>Varianten</h3></div>
+    <div class="sub pb"><div></div><h3>Varianten</h3></div>
     <div class="tiles t2 indent">
       <div><div class="tile l"><img src="assets/logo/TTGO_logo-zentriert_positiv.svg" alt="Logo zentriert"></div><div class="cap"><b>Zentriert · Standard</b>Für Plakate, Titelseiten, Programmhefte und alles, was eher hoch als breit ist.</div></div>
       <div><div class="tile d"><img src="assets/logo/TTGO_logo-quer_negativ.svg" alt="Logo quer"></div><div class="cap"><b>Quer</b>Für breite Formate: Website-Kopf, Banner, Briefbogen, Abspann.</div></div>
@@ -423,7 +453,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       <div><div class="tile photo"><img src="assets/logo/TTGO_logo-zentriert_weiss.svg" alt=""></div><div class="cap"><b>Einfarbig weiß</b>Auf Fotos und farbigen Flächen.</div></div>
     </div>
 
-    <div class="sub"><div></div><h3>Schutzraum</h3></div>
+    <div class="sub pb"><div></div><h3>Schutzraum</h3></div>
     <div class="cols indent clearrow">
       <div class="clear"><img src="assets/logo/TTGO_logo-quer_positiv.svg" alt="Logo mit Schutzraum"><span class="x" style="left:14px;top:50%;transform:translateY(-50%)">x</span><span class="x" style="top:12px;left:50%">x</span></div>
       <div>
@@ -621,10 +651,10 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
 <section class="full" aria-label="Vollbild mit Videoschleife und Nachbild">
   <div class="fxwrap" id="fullFx">
     <video id="fullVid" src="assets/video/nachbild-zeitlupe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video>
-    <img class="poster print-only" src="assets/video/nachbild-zeitlupe.jpg" alt="">
+    <img class="poster print-only" src="assets/img/druck-vollbild.jpg" alt="">
   </div>
   <div class="in"><div class="wrap">
-    <div class="kicker" style="margin-bottom:16px;color:#c9c3b8">Vollbild mit Videoschleife · was sich bewegt, hinterlässt eine rote Spur</div>
+    <div class="kicker" style="margin-bottom:16px;color:#c9c3b8"><span class="nur-bildschirm">Vollbild mit Videoschleife · was sich bewegt, hinterlässt eine rote Spur</span><span class="print-only">Vollbild · auf der Website als Videoschleife mit roter Nachbild-Spur</span></div>
     <div class="title q">We were not<br>like this <em>before</em></div>
   </div></div>
 </section>
@@ -652,7 +682,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
       <div>
         <div class="box" style="cursor:crosshair"><div class="fxwrap" id="bendFx"><video id="bendVid" src="assets/video/biegen-gruppe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video><img class="poster print-only" src="assets/video/biegen-gruppe.jpg" alt=""></div></div>
         <h4>Das Bild biegt sich</h4>
-        <p>Ein senkrechter Streifen im Video verzieht sich wie der Stab im Zeichen, an der stärksten Stelle schimmert es rot. Der Streifen folgt langsam der Maus. So läuft auch der Kopf dieser Seite.</p>
+        <p>Ein senkrechter Streifen im Video verzieht sich wie der Stab im Zeichen, an der stärksten Stelle schimmert es rot. Der Streifen folgt langsam der Maus.<span class="nur-bildschirm"> So läuft auch der Kopf dieser Seite.</span></p>
       </div>
       <div>
         <div class="box"><div class="fxwrap" id="trailFx"><video id="trailVid" src="assets/video/nachbild-zeitlupe.mp4" crossorigin="anonymous" preload="none" muted loop playsinline aria-hidden="true"></video><img class="poster print-only" src="assets/video/nachbild-zeitlupe.jpg" alt=""></div></div>
@@ -752,6 +782,7 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
           <li><b>Farben</b><span>alle Werte als Textdatei</span></li>
           <li><b>Schriften</b><span>Archivo, Anton und Courier Prime mit Lizenz</span></li>
           <li><b>Bewegung</b><span>die Verwandlung des Zeichens als Video und mehrere Videoschleifen</span></li>
+          <li><b>Fotos</b><span>zwölf Fotos aus der Präsentation 2025 und den Proben, schwarz-weiß und in Druckauflösung</span></li>
           <li><b>Styleguide</b><span>dieses Dokument als PDF</span></li>
         </ul>
         <div class="btns"><a class="btn fill" href="pressepaket/TTGO_Pressepaket_2026-10.zip" download>Pressepaket herunterladen</a></div>
@@ -773,6 +804,8 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
     Fotos und Videos: Ensemble „Take the gloves off!“, 2025. Schriften: Archivo, Anton und Courier Prime unter der SIL Open Font License.
   </div>
 </footer>
+
+<button type="button" class="totop" aria-label="Nach oben"><svg viewBox="0 0 18 24" aria-hidden="true"><path d="M9 6V23" stroke="#d22b1f" stroke-width="3"/><path d="M2 10L9 3l7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/></svg></button>
 
 <script src="assets/js/figuren.js"></script>
 <script src="assets/js/morph.js"></script>
@@ -921,6 +954,22 @@ footer { padding: 44px 0 64px; font-size: 13px; color: #8c877e; background: var(
     }, 4200);
   }
   window.addEventListener('beforeprint', function () { bars.forEach(function (el) { set(el, false); }); });
+})();
+</script>
+<script>
+(function () {
+  var b = document.querySelector('.totop'); if (!b) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches, on = false;
+  function upd() { var s = window.scrollY > window.innerHeight * 0.9; if (s !== on) { on = s; b.classList.toggle('on', s); } }
+  window.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); b.blur(); });
+})();
+(function () {
+  // Menüleiste: rechts auslaufen lassen, solange sich weitere Punkte wischen lassen
+  var l = document.querySelector('nav.bar .links, nav.toc .wrap'); if (!l) return;
+  function upd() { l.classList.toggle('mehr', l.scrollLeft + l.clientWidth < l.scrollWidth - 2); }
+  l.addEventListener('scroll', upd, { passive: true }); window.addEventListener('resize', upd); upd();
+  if (document.fonts) document.fonts.ready.then(upd);
 })();
 </script>
 </body>
