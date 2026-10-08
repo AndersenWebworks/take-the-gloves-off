@@ -3,7 +3,7 @@
   'use strict';
   var root = document.documentElement;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var TITLE = { de: 'Take the gloves off! – Musiktheater mit zeitgenössischem Zirkus', en: 'Take the gloves off! – A musical with contemporary circus' };
+  var TITLE = { de: 'Take the gloves off! – Musiktheater von Lilith Diringer', en: 'Take the gloves off! – A musical by Lilith Diringer' };
 
   // Sprache
   function setLang(l) {
@@ -78,32 +78,74 @@
     }, { threshold: 0.9 }).observe(fin);
   }
 
-  // Demos: immer nur eine spielt
+  // Songliste: 06, 12 und 13 öffnen sich zum Schriftspiel, sobald man dort ankommt
+  var auf = document.querySelectorAll('.songs li.auf');
+  if ('IntersectionObserver' in window && !reduce) {
+    var aio = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); aio.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -38% 0px' });
+    auf.forEach(function (li) { aio.observe(li); });
+  } else auf.forEach(function (li) { li.classList.add('on'); });
+
+  // Demos: der Titel ist der Knopf, immer nur einer spielt
   var audio = new Audio(), cur = null;
   audio.preload = 'none';
   function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
-  document.querySelectorAll('.track').forEach(function (tr) {
-    var btn = tr.querySelector('.play'), bar = tr.querySelector('.prog'), time = tr.querySelector('.time');
+  var demos = Array.prototype.slice.call(document.querySelectorAll('.demo'));
+  demos.forEach(function (d) {
+    var btn = d.querySelector('.d-t'), bar = d.querySelector('.d-prog');
+    d._time = d.querySelector('.d-time'); d._bar = bar.querySelector('span');
     btn.addEventListener('click', function () {
-      if (cur === tr) { if (audio.paused) audio.play(); else audio.pause(); return; }
-      if (cur) { cur.classList.remove('on'); }
-      cur = tr; audio.src = tr.getAttribute('data-src'); audio.play();
+      if (cur === d) { if (audio.paused) audio.play(); else audio.pause(); return; }
+      if (cur) cur.classList.remove('on');
+      cur = d; audio.src = d.getAttribute('data-src'); audio.play();
     });
     bar.addEventListener('click', function (e) {
-      if (cur !== tr || !audio.duration) return;
+      if (cur !== d || !audio.duration) return;
       var r = bar.getBoundingClientRect();
       audio.currentTime = audio.duration * (e.clientX - r.left) / r.width;
     });
-    tr._time = time; tr._bar = bar.querySelector('span');
   });
-  audio.addEventListener('play', function () { if (cur) { cur.classList.add('on'); cur.querySelector('.play').setAttribute('aria-label', 'Pause'); } });
-  audio.addEventListener('pause', function () { if (cur) { cur.classList.remove('on'); cur.querySelector('.play').setAttribute('aria-label', 'Play'); } });
+  audio.addEventListener('play', function () { if (cur) { cur.classList.add('on', 'gesehen'); bend(); } });
+  audio.addEventListener('pause', function () { if (cur) cur.classList.remove('on'); });
   audio.addEventListener('timeupdate', function () {
     if (!cur) return;
+    var p = audio.duration ? audio.currentTime / audio.duration : 0;
     cur._time.textContent = fmt(audio.currentTime);
-    cur._bar.style.width = (audio.duration ? 100 * audio.currentTime / audio.duration : 0) + '%';
+    cur._bar.style.width = (100 * p) + '%';
+    var sink = cur.querySelector('.sink');
+    if (sink) sink.style.setProperty('--p', (100 * p).toFixed(2) + '%');   // versinkt mit dem Song
   });
-  audio.addEventListener('ended', function () { if (cur) { cur._bar.style.width = '0%'; cur._time.textContent = cur._time.getAttribute('data-total'); } });
+  audio.addEventListener('ended', function () {
+    if (!cur) return;
+    cur._bar.style.width = '0%'; cur._time.textContent = cur._time.getAttribute('data-total');
+    var sink = cur.querySelector('.sink'); if (sink) sink.style.setProperty('--p', '0%');
+    cur.classList.remove('on', 'gesehen');
+  });
+
+  // Monster biegt sich, solange es läuft: die Buchstaben folgen einer langsamen S-Kurve
+  var mon = document.querySelector('.biege'), mi = [], amp = 0, bending = false;
+  if (mon) {
+    var mt = mon.textContent; mon.textContent = ''; mon.setAttribute('aria-label', mt);
+    mt.split('').forEach(function (c) { var i = document.createElement('i'); i.textContent = c; i.setAttribute('aria-hidden', 'true'); mon.appendChild(i); mi.push(i); });
+  }
+  function bend() {
+    if (!mon || reduce || bending) return;
+    bending = true;
+    var t0 = performance.now();
+    (function f(now) {
+      var playing = cur && cur.classList.contains('d-monster') && !audio.paused;
+      amp += ((playing ? 1 : 0) - amp) * 0.035;
+      var t = (now - t0) / 1000, n = mi.length;
+      mi.forEach(function (i, k) {
+        var x = n > 1 ? k / (n - 1) : 0;
+        var y = Math.sin(x * Math.PI * 1.15 + t * 0.9) * 0.12 * amp;   // in em
+        var r = Math.cos(x * Math.PI * 1.15 + t * 0.9) * 7 * amp;
+        i.style.transform = amp > 0.002 ? 'translateY(' + y.toFixed(3) + 'em) rotate(' + r.toFixed(2) + 'deg)' : '';
+      });
+      if (playing || amp > 0.002) requestAnimationFrame(f); else bending = false;
+    })(t0);
+  }
 
   // Probenvideo: eigenes Startbild, danach die normalen Bedienelemente
   var pl = document.getElementById('player');
