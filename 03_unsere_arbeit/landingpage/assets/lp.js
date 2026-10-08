@@ -3,7 +3,7 @@
   'use strict';
   var root = document.documentElement;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var TITLE = { de: 'Take the gloves off! – Musiktheater mit zeitgenössischem Zirkus', en: 'Take the gloves off! – A musical with contemporary circus' };
+  var TITLE = { de: 'Take the gloves off! – Musiktheater von Lilith Diringer', en: 'Take the gloves off! – A musical by Lilith Diringer' };
 
   // Sprache
   function setLang(l) {
