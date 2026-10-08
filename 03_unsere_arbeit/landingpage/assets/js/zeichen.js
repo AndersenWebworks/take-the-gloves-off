@@ -1,5 +1,5 @@
 /* Take the gloves off! – animierte Bildmarke
- * Der mittlere Stab steht gerade in der Farbe der anderen Stäbe, biegt sich, wird rot,
+ * Die drei Stäbe werden eingezählt, der mittlere biegt sich auf die Vier, wird rot,
  * geht in Überblendungen durch die Figuren (Daumenkino) und wird wieder zum geraden Stab.
  * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f' })
  * Im svg: <path class="z-stab">, optional <g class="z-figuren"> mit einem <path> je Figur.
@@ -88,15 +88,24 @@
     if (opts.manual) return api;                      // Ablauf kommt von außen (Kopf der Seite)
     if (reduce || opts.still) { state(1, 1, []); return api; }
 
-    // Zeitplan in Sekunden
+    // Zeitplan in Sekunden: kurz dunkel, die Stäbe werden eingezählt (eins, zwei, drei),
+    // auf die Vier biegt sich der mittlere. Am Ende verlöschen alle drei, und es geht von vorn los.
     var nf = figs.length, hold = 0.6, fade = 0.3, morph = 0.5;
-    var tBend0 = 0.5, tBend1 = 1.4;
+    var COUNT = [0.25, 0.65, 1.05], countDur = 0.32;
+    var tBend0 = 1.45, tBend1 = tBend0 + 0.9;
     var tFig0 = tBend1 + 0.35;                        // der Stab beginnt sich zur Figur zu verformen
     var figEnd = nf ? tFig0 + morph + nf * hold + (nf - 1) * fade : tBend1 + 1.2;
     var tBack1 = figEnd + morph;                      // wieder der gebogene Stab
     var tUn0 = tBack1 + 1.2, tUn1 = tUn0 + 0.8;
-    var total = tUn1 + 1.0;
+    var tOut0 = tUn1 + 0.5, tOut1 = tOut0 + 0.35;
+    var total = tOut1 + 0.15;
     var start = null;
+    var outer = Array.prototype.slice.call(svg.querySelectorAll(':scope > rect'));
+    var counted = outer.length === 2 ? [outer[0], stab, outer[1]] : [];
+    function expoOut(u) { return u >= 1 ? 1 : 1 - Math.pow(2, -10 * u); }
+    function scaleY(el, k) {
+      el.setAttribute('transform', k >= 1 ? '' : 'translate(0 ' + BAR.top + ') scale(1 ' + Math.max(k, 0.0001) + ') translate(0 ' + (-BAR.top) + ')');
+    }
 
     function frame(now) {
       if (start === null) start = now;
@@ -118,6 +127,13 @@
         a = b;
       }
       state(bend, col, op);
+      counted.forEach(function (el, j) {
+        var k = lin((s - COUNT[j]) / countDur);
+        scaleY(el, expoOut(k));
+        if (k < 1) el.style.opacity = Math.min(1, k * 2.5);  // danach gilt wieder, was state() setzt
+        else if (el !== stab) el.style.opacity = 1;
+      });
+      svg.style.opacity = s < tOut0 ? 1 : 1 - lin((s - tOut0) / (tOut1 - tOut0));
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
