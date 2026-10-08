@@ -1,0 +1,18 @@
+Take the gloves off! – Farben
+=============================
+
+KERN (immer)
+Bühnenschwarz   HEX #0E0E0E   RGB 14 14 14     CMYK 60 40 40 100
+Bühnenweiß      HEX #EFEBE3   RGB 239 235 227  CMYK 0 2 5 6
+Signalrot       HEX #D22B1F   RGB 210 43 31    CMYK 0 90 95 5
+
+TONART SHOW
+Marineblau      HEX #17233F   RGB 23 35 63     CMYK 100 85 40 50
+Flaggenrot      HEX #B7192D   RGB 183 25 45    CMYK 10 100 85 5
+
+TONART AKTE
+Aktenpapier     HEX #EBE5D6   RGB 235 229 214  CMYK 0 3 10 8
+Schwärzung      HEX #151515   RGB 21 21 21     CMYK 60 40 40 100
+
+Verhältnis auf einer typischen Fläche: Schwarz 70 %, Weiß 25 %, Rot 5 %.
+Die CMYK-Werte sind Richtwerte. Vor einer größeren Auflage lohnt sich ein Andruck bei der Druckerei.

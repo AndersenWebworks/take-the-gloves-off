@@ -1,0 +1,38 @@
+Take the gloves off! – Pressepaket
+==================================
+
+Vorschlag für ein Erscheinungsbild des Musiktheaters von Lilith Diringer, Oktober 2026.
+Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
+
+01_Logo
+  svg/  für Druck und Website
+  png/  für Office-Programme und soziale Medien (transparenter Hintergrund)
+  Varianten: logo-zentriert (Standard), logo-quer, schriftzug, bildmarke
+  Größen:    ohne Zusatz = groß, Unterzeile in einer Zeile
+             -mittel     = Unterzeile in zwei Zeilen, für kleinere Formate
+             -klein      = ohne Unterzeile, für sehr kleine Formate
+  Farbfassungen: positiv (heller Grund), negativ (dunkler Grund), schwarz, weiss
+  TTGO_profilbild_1080.png              Profilbild für Instagram und andere Kanäle
+  TTGO_bildmarke_animiert.svg           die Verwandlung als animierte Grafik für Websites
+  TTGO_bildmarke_animiert_negativ.svg   dasselbe für dunklen Grund
+
+02_Farben
+  TTGO_Farben.txt                       HEX, RGB und CMYK aller Farben
+
+03_Schriften
+  Archivo-VF.ttf                        variable Schrift für fast alles
+  ArchivoTTGO-Titel.ttf                 fester Schnitt für Titel (Extra Bold, schmal)
+  ArchivoTTGO-Text-*.ttf                feste Schnitte für Fließtext
+  Anton-Regular.ttf                     Tonart Show
+  CourierPrime-*.ttf                    Tonart Akte
+  Alle Schriften stehen unter der SIL Open Font License (OFL-*.txt).
+  Die festen Archivo-Schnitte sind aus Archivo abgeleitet und stehen unter derselben Lizenz.
+
+04_Bewegung
+  TTGO_zeichen-verwandlung_1080x1080.mp4        Verwandlung des Zeichens, quadratisch
+  TTGO_zeichen-verwandlung_story_1080x1920.mp4  dasselbe mit Schriftzug, für Story und Reel
+  TTGO_loop_klar_*.mp4                          echte Ausschnitte aus den Proben, schwarz-weiß
+  TTGO_loop_weich_*.mp4                         leicht weichgezeichnet
+  TTGO_loop_boden_zeitlupe_960x540.mp4          Bodenarbeit in Zeitlupe, 3,5-mal langsamer
+  TTGO_loop_*.mp4 (übrige)                      stark verwischt, für Hintergründe
+  Alle Schleifen laufen nahtlos und haben keinen Ton.

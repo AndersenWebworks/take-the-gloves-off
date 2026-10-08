@@ -1,0 +1,12 @@
+# Öffentliches Repo: Nur Landingpage und Styleguide werden versioniert.
+# Material von Lilith, Rohmaterial, interne Notizen, KI-Bilder und
+# Entwurfsstufen bleiben ausschließlich lokal.
+/*
+!/.gitignore
+!/veroeffentlichen.sh
+!/03_unsere_arbeit/
+/03_unsere_arbeit/*
+!/03_unsere_arbeit/landingpage/
+!/03_unsere_arbeit/styleguide/
+_werkzeug/
+__pycache__/
