@@ -122,7 +122,7 @@
     d._time = d.querySelector('.d-time'); d._bar = bar.querySelector('span');
     btn.addEventListener('click', function () {
       if (cur === d) { if (audio.paused) audio.play(); else audio.pause(); return; }
-      if (cur) cur.classList.remove('on');
+      if (cur) reset(cur);
       cur = d; audio.src = d.getAttribute('data-src'); audio.play();
     });
     bar.addEventListener('click', function (e) {
@@ -141,12 +141,13 @@
     var sink = cur.querySelector('.sink');
     if (sink) sink.style.setProperty('--p', (100 * Math.min(1, p * 3)).toFixed(2) + '%');   // nach einem Drittel ganz im Schwarz
   });
-  audio.addEventListener('ended', function () {
-    if (!cur) return;
-    cur._bar.style.width = '0%'; cur._time.textContent = cur._time.getAttribute('data-total');
-    var sink = cur.querySelector('.sink'); if (sink) sink.style.setProperty('--p', '0%');
-    cur.classList.remove('on');
-  });
+  // Zurück auf Anfang: beim Songwechsel und am Ende eines Songs
+  function reset(d) {
+    d._bar.style.width = '0%'; d._time.textContent = d._time.getAttribute('data-total');
+    var sink = d.querySelector('.sink'); if (sink) sink.style.setProperty('--p', '0%');
+    d.classList.remove('on');
+  }
+  audio.addEventListener('ended', function () { if (cur) reset(cur); });
 
   // Monster biegt sich, solange es läuft: die Buchstaben folgen einer langsamen S-Kurve
   var mon = document.querySelector('.biege'), mi = [], amp = 0, bending = false;
