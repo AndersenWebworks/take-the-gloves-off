@@ -2,7 +2,7 @@
  * Ein Takt für alles: Dunkel, die Stäbe fallen, das Licht kommt, der Stab bricht
  * (und mit ihm das Bild), dann der Titel Zeile für Zeile, das Ausrufezeichen,
  * die Unterzeile unter einem Balken hervor, zuletzt die Bedienelemente.
- * Danach ruht das Zeichen gebogen und verwandelt sich in Abständen in die Tänzerfigur.
+ * Danach ruht das Zeichen gebogen und verwandelt sich in Abständen in hängende Luftartistik-Figuren.
  */
 (function () {
   'use strict';
@@ -86,8 +86,8 @@
     [3.7, 0.12, 0.45, 'wv'],
     [4.13, 0.1, 0.3, 'w']
   ];
-  // Kreislauf des Zeichens: ruhen, Tänzerfigur, ruhen, aufrichten, brechen
-  var L = { hold: 0.3, morph: 0.5, fade: 0.3, figHold: [0.55, 0.55, 0.8], back: 0.5, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
+  // Kreislauf des Zeichens: ruhen, Figuren (Daumenkino), ruhen, aufrichten, brechen
+  var L = { hold: 0.3, morph: 0.5, fade: 0.3, figHold: [0.55, 0.55, 0.55, 0.55, 0.8], back: 0.5, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
   var figStart = L.hold;
   var figEnd = figStart + L.morph + (L.figHold.length - 1) * L.fade + L.figHold.reduce(function (a, b) { return a + b; }, 0);
   var backEnd = figEnd + L.back;
@@ -95,7 +95,7 @@
   var snapStart = upEnd + L.rest, LOOP = snapStart + L.snap;
 
   function loopState(u) {
-    var bend = 1, col = 1, op = [0, 0, 0];
+    var bend = 1, col = 1, op = L.figHold.map(function () { return 0; });
     var breath = 1 + 0.035 * Math.sin(u * Math.PI * 2 / 4.6);
     if (u < figStart) bend = breath;
     else if (u < backEnd) {
