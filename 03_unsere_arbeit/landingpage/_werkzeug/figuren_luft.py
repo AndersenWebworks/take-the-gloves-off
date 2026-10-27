@@ -18,29 +18,51 @@ ROOT = os.path.dirname(LP)
 TMP = os.path.join(ROOT, "styleguide", "_werkzeug", "tmp", "luft"); os.makedirs(TMP, exist_ok=True)
 REF = "C:/Andersen/Webworks/GitHub/Webworks/take-the-gloves-off/02_rohmaterial_medien/luftartistik_referenzen_lilith/"
 X0, X1, Y0, Y1 = 21.5, 78.5, 8.0, 92.0       # Zeichen
-IN0, IN1 = 32.5, 67.5                        # Zwischenraum zwischen den Stäben (mit Luft)
+IN0, IN1 = 31.8, 68.2                        # Zwischenraum zwischen den Stäben (mit Luft)
 ANCHOR = (50.0, 8.0)                         # Gurtansatz am Stab
 BAND = 1.8                                   # Gurtbreite (Zeichen-Einheiten)
 RES = 24                                     # Pixel je Einheit beim Zusammensetzen
 TRACE = 9                                    # Pixel je Einheit beim Nachzeichnen
-KOPF = 6.6                                   # Kopfhöhe (mit Haar) in Einheiten: bestimmt den Maßstab, alle Figuren gleich groß
-                                # größter Maßstab (Foto-Pixel -> Einheiten), damit nichts übergroß wird
-MITTE = 52.0                                 # Körper möglichst um diese Höhe zentrieren
+LMIN = 9.0                                   # kürzester Gurt (Abstand der Haltepunkte unter dem Ansatz)
 BOTTOM = 89.5                                # tiefster erlaubter Punkt
 
 # zonen = [(x0,y0,x1,y1,modus,r)]: kill löscht, open behält nur dicke Teile (entfernt Gurte); Koordinaten im Foto
 # straps = Haltepunkte im Foto, mit dem Ansatz durch gerade Bänder verbunden; extra = weitere Bänder (Start, Ende)
 # L = Abstand der Haltepunkte unter dem Ansatz (Einheiten)
+SPEC4 = [   # ref4: Gelenkpunkte im Foto (x, y, Radius); idealisierte Kontur nach der Pose im Foto
+    ("ell", 452, 488, 44, 34),
+    ("chain", [(440, 520, 28), (436, 600, 30), (432, 720, 37), (430, 820, 47), (425, 880, 58)]),
+    ("chain", [(400, 935, 82), (440, 1010, 66), (478, 1085, 70), (498, 1135, 60)]),
+    ("chain", [(345, 905, 52), (270, 892, 46), (190, 880, 36), (178, 935, 28), (190, 962, 22), (165, 1000, 18), (140, 1018, 12)]),
+    ("ell", 436, 1262, 74, 76),
+    ("chain", [(470, 1135, 34), (452, 1200, 30)]),
+    ("chain", [(515, 1130, 44), (575, 1100, 34), (625, 1082, 25), (672, 1068, 18), (705, 1062, 12)]),
+    ("ell", 705, 1062, 28, 12, -10),
+    ("chain", [(430, 1230, 30), (412, 1300, 26), (410, 1400, 23), (411, 1500, 19), (413, 1545, 16), (414, 1585, 6)]),
+]
+SPEC1 = [   # ref1
+    ("ell", 535, 642, 70, 76),
+    ("chain", [(570, 700, 30), (590, 750, 36)]),
+    ("chain", [(580, 770, 70), (650, 800, 92), (655, 885, 84), (650, 940, 78), (655, 1030, 98), (645, 1110, 88)]),
+    ("chain", [(595, 625, 36), (640, 540, 30), (690, 450, 27), (720, 385, 24), (737, 345, 26)]),
+    ("ell", 738, 335, 30, 36),
+    ("chain", [(705, 735, 40), (765, 670, 34), (830, 572, 27), (885, 510, 21), (910, 465, 24)]),
+    ("ell", 910, 462, 26, 32),
+    ("chain", [(640, 1105, 76), (540, 1150, 64), (450, 1210, 56), (390, 1283, 34), (340, 1318, 24), (290, 1340, 14)]),
+    ("chain", [(610, 1125, 70), (540, 1275, 52), (600, 1330, 40), (663, 1383, 34), (703, 1437, 26), (757, 1483, 12)]),
+]
+
+# zonen = [(x0,y0,x1,y1,modus,r)]: kill löscht, open behält nur dicke Teile (entfernt Gurte, Locken); Koordinaten im Foto
+# bau = Körper aus Gelenkpunkten statt aus dem Foto (idealisiert); straps = Haltepunkte im Foto, mit dem Ansatz durch
+# gerade Bänder verbunden; extra = weitere Bänder (Start, Ende)
 FIGUREN = [
     dict(ref="ref5.jpg", zonen=[(150, 0, 760, 322, "kill", 0), (150, 345, 306, 425, "kill", 0), (190, 420, 306, 740, "kill", 0),
                                (468, 322, 760, 612, "kill", 0), (0, 1000, 1049, 1573, "kill", 0)],
-         kopf=95, straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], L=24, close=0.005, open=0.004, blur=0.005),
-    dict(ref="ref2.jpg", zonen=[(0, 0, 1066, 725, "kill", 0), (560, 725, 640, 772, "kill", 0)],
-         kopf=125, straps=[(300, 745), (597, 792)], extra=[], L=24, close=0.014, open=0.007, blur=0.007),
-    dict(ref="ref4.jpg", zonen=[(0, 0, 1066, 446, "kill", 0), (492, 500, 560, 760, "open", 14)],
-         kopf=120, straps=[(492, 478)], extra=[], L=18, close=0.008, open=0.006, blur=0.009),
-    dict(ref="ref1.jpg", zonen=[(650, 0, 900, 330, "open", 16), (850, 0, 1067, 460, "open", 16)],
-         kopf=140, straps=[(740, 340), (905, 450)], extra=[], L=24, close=0.008, open=0.005, blur=0.007),
+         straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, close=0.007, open=0.006, blur=0.008),
+    dict(ref="ref2.jpg", zonen=[(0, 0, 1066, 725, "kill", 0), (560, 725, 640, 772, "kill", 0), (200, 1130, 440, 1330, "open", 16)],
+         straps=[(300, 745), (597, 792)], extra=[], L=15, close=0.014, open=0.007, blur=0.007),
+    dict(ref="ref4.jpg", bau=SPEC4, straps=[(452, 478)], extra=[], blur=0.006),
+    dict(ref="ref1.webp", bau=SPEC1, straps=[(738, 338), (910, 463)], extra=[], L=14, blur=0.006),
 ]
 
 
@@ -65,6 +87,21 @@ def biggest(m):
 
 def person(p):
     """Person ohne Gurte, glatt, als Gleitkomma-Maske (0..1) im Foto-Maßstab"""
+    if p.get("bau"):
+        g = np.array(Image.open(REF + p["ref"]).convert("L")); m = np.zeros(g.shape, np.uint8)
+        for kind, *a in p["bau"]:
+            if kind == "chain":
+                for (x0, y0, r0), (x1, y1, r1) in zip(a[0][:-1], a[0][1:]):
+                    A, B = np.array([x0, y0], float), np.array([x1, y1], float); d = B - A; Ln = np.linalg.norm(d)
+                    cv2.circle(m, (int(x0), int(y0)), int(r0), 255, -1); cv2.circle(m, (int(x1), int(y1)), int(r1), 255, -1)
+                    if Ln:
+                        n = np.array([-d[1], d[0]]) / Ln
+                        cv2.fillPoly(m, [np.round(np.array([A + n * r0, B + n * r1, B - n * r1, A - n * r0])).astype(np.int32)], 255)
+            else:
+                cx, cy, rx, ry = a[:4]; ang = a[4] if len(a) > 4 else 0
+                cv2.ellipse(m, (int(cx), int(cy)), (int(rx), int(ry)), ang, 0, 360, 255, -1)
+        ys, xs = np.nonzero(m); H = ys.max() - ys.min()
+        return cv2.GaussianBlur(m.astype(np.float32) / 255, (0, 0), H * p.get("blur", 0.006))
     if p.get("thr"):                                  # Gegenlicht: Schwellwert ist hier sauberer als die KI-Freistellung
         g = np.array(Image.open(REF + p["ref"]).convert("L")).astype(int)
         x0, y0, x1, y1 = p["box"]
@@ -88,6 +125,9 @@ def person(p):
         if h[3] < 0: cv2.drawContours(out, [c], -1, 1, -1)
     for c, h in zip(cs, hi[0]):
         if h[3] >= 0 and cv2.contourArea(c) > (H * 0.05) ** 2: cv2.drawContours(out, [c], -1, 0, -1)
+    for kind, *a in p.get("plus", []):                            # Nachbesserung: Kopf klar absetzen
+        if kind == "ell": cv2.ellipse(out, (int(a[0]), int(a[1])), (int(a[2]), int(a[3])), 0, 0, 360, 1, -1)
+        else: cv2.line(out, (int(a[0][0]), int(a[0][1])), (int(a[1][0]), int(a[1][1])), 1, int(a[2]))
     return cv2.GaussianBlur(out.astype(np.float32), (0, 0), H * p.get("blur", 0.004))
 
 
@@ -100,23 +140,18 @@ def band(canvas, a, b, w, ext=True):
 
 
 def fit(p, f):
-    """Maßstab aus gleicher Körperfläche, verkleinert, bis die Figur zwischen die Stäbe und ins Zeichen passt"""
-    area = (f > .5).sum()
-    s = KOPF / p["kopf"]
+    """Maßstab je Figur: so groß, dass sie den Zwischenraum füllt (Breite und Höhe), mit möglichst kurzem Gurt"""
     ys, xs = np.nonzero(f > .5)
-    cx = np.mean([q[0] for q in p["straps"]]); cy = np.mean([q[1] for q in p["straps"]])
+    cy = np.mean([q[1] for q in p["straps"]])
+    s = min((IN1 - IN0) / (xs.max() - xs.min()), (BOTTOM - ANCHOR[1] - p.get("L", LMIN)) / (ys.max() - cy))
     while True:
-        w = (xs.max() - xs.min()) * s
-        top = (ys.min() - cy) * s; bot = (ys.max() - cy) * s
-        L = MITTE - (top + bot) / 2 - ANCHOR[1]
-        L = max(L, 14)
+        L = max(p.get("L", LMIN), 4 - (ys.min() - cy) * s)                 # Körper beginnt frühestens 4 Einheiten unter dem Ansatz
         bottom = ANCHOR[1] + L + (ys.max() - cy) * s
-        if bottom > BOTTOM: L = max(12, L - (bottom - BOTTOM)); bottom = ANCHOR[1] + L + (ys.max() - cy) * s
-        if w <= IN1 - IN0 and bottom <= BOTTOM + 1e-6: return s, L
+        if bottom <= BOTTOM + 1e-6 and (xs.max() - xs.min()) * s <= IN1 - IN0 + 1e-6: return s, L
         s *= 0.99
 
 
-def build(p, f, s, L):
+def build(p, f, s, L, body=True):
     h, w = f.shape
     k = s * RES
     big = cv2.resize(f, (int(w * k), int(h * k)), interpolation=cv2.INTER_CUBIC)
@@ -131,12 +166,13 @@ def build(p, f, s, L):
     tx, ty = int(round((px - X0) * RES)), int(round((py - Y0) * RES))
     xa, ya = max(0, tx), max(0, ty); xb, yb = min(W, tx + big.shape[1]), min(H, ty + big.shape[0])
     sub = big[ya - ty:yb - ty, xa - tx:xb - tx]
-    canvas[ya:yb, xa:xb] = ((sub > .5) * 255).astype(np.uint8)
+    if body: canvas[ya:yb, xa:xb] = ((sub > .5) * 255).astype(np.uint8)
     P = lambda q: ((q[0] * s + px - X0) * RES, (q[1] * s + py - Y0) * RES)
     anchor = ((ANCHOR[0] - X0) * RES, (ANCHOR[1] - Y0) * RES)
     for q in p["straps"]: band(canvas, anchor, P(q), BAND * RES)
     for a, b in p["extra"]: band(canvas, P(a), P(b), BAND * RES, False)
     canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, disk(0.55 * RES))               # spitze Keile und Haarrisse zu
+    if not body: return canvas
     cs, hi = cv2.findContours(canvas, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)      # winzige Lücken schließen
     for c, h in zip(cs, hi[0]):
         if h[3] >= 0 and cv2.contourArea(c) < 6 * RES * RES: cv2.drawContours(canvas, [c], -1, 255, -1)
@@ -226,49 +262,45 @@ def align(bar, fig):
     return fig[off:] + fig[:off]
 
 
-K = 14           # Zwischenbilder je Verwandlung (Stab -> Figur)
+K = 20           # Zwischenbilder je Verwandlung (Stab -> Figur)
 R2 = 12          # Pixel je Einheit für die Abstandsfelder
 
 
-def zwischenbilder(barp, canvas):
-    """Weiche Verwandlung: Abstandsfelder von Stab und Figur werden überblendet (keine verdrehten Umrisse wie bei
-    Punkt-zu-Punkt-Morphs). Ergebnis: K Pfade von t = 0 (Stab) bis t = 1 (Figur)."""
+def zwischenbilder(barp, gurt, canvas):
+    """Weiche Verwandlung in zwei Schritten: erst zieht sich der Stab zum Gurt zusammen, dann wächst der Körper aus den
+    Haltepunkten (Abstandsfelder werden überblendet, keine verdrehten Umrisse). Ergebnis: K Pfade von t = 0 (Stab) bis t = 1."""
     W, H = int((X1 - X0) * R2), int((Y1 - Y0) * R2)
-    fig = (cv2.resize(canvas, (W, H), interpolation=cv2.INTER_AREA) > 127).astype(np.uint8)
+    rs = lambda c: (cv2.resize(c, (W, H), interpolation=cv2.INTER_AREA) > 127).astype(np.uint8)
+    fig, gur = rs(canvas), rs(gurt)
     bar = np.zeros((H, W), np.uint8)
     cv2.fillPoly(bar, [np.round(np.array([((x - X0) * R2, (y - Y0) * R2) for x, y in barp])).astype(np.int32)], 1)
     sd = lambda m: cv2.distanceTransform(1 - m, cv2.DIST_L2, 5) - cv2.distanceTransform(m, cv2.DIST_L2, 5)
-    # Schwerpunkte (nur waagerecht) auf eine Linie legen, damit sich die Formen beim Überblenden immer überlagern;
-    # der überblendete Umriss wandert dann mit t vom Schwerpunkt des Stabs zu dem der Figur (Gurtansatz oben bleibt bei y = 8)
-    cxa = np.nonzero(bar)[1].mean(); cxb = np.nonzero(fig)[1].mean()
+    cx = lambda m: np.nonzero(m)[1].mean()
     def shift(m, dx):
-        M = np.float32([[1, 0, dx], [0, 1, 0]]); return cv2.warpAffine(m, M, (W, H), flags=cv2.INTER_NEAREST)
+        return cv2.warpAffine(m, np.float32([[1, 0, dx], [0, 1, 0]]), (W, H), flags=cv2.INTER_NEAREST)
+    SPLIT = 0.5
     frames = []
     for i in range(K):
         t = i / (K - 1)
-        cx = (1 - t) * cxa + t * cxb                       # gemeinsame Mitte dieses Bildes
-        sa = sd(shift(bar, cx - cxa)); sb = sd(shift(fig, cx - cxb))
-        f = (1 - t) * sa + t * sb
+        if t <= SPLIT:                                    # Stab -> Gurt (gemeinsame Mitte, Ansatz bleibt oben)
+            u = t / SPLIT; u = u * u * (3 - 2 * u)
+            c = (1 - u) * cx(bar) + u * cx(gur)
+            f = (1 - u) * sd(shift(bar, c - cx(bar))) + u * sd(shift(gur, c - cx(gur)))
+        else:                                             # Gurt -> ganze Figur (Körper wächst aus den Haltepunkten)
+            u = (t - SPLIT) / (1 - SPLIT); u = u * u * (3 - 2 * u)
+            f = (1 - u) * sd(gur) + u * sd(fig)
         up = cv2.resize(f, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         m = (up < 0).astype(np.uint8) * 255
         m = cv2.morphologyEx(m, cv2.MORPH_OPEN, disk(2))
-        # Gurtansatz bleibt am Stab: ein Band von der Oberkante bis zur Form hält sie fest (Breite von Stab zu Gurt)
-        n_, lab, st, _ = cv2.connectedComponentsWithStats((m > 0).astype(np.uint8))
-        if n_ > 1:
-            big = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA])); ytop = st[big, cv2.CC_STAT_TOP]
-            wb = BAND + (9.0 - BAND) * (1 - t) ** 2
-            xa, xb = int((ANCHOR[0] - wb / 2 - X0) * 2 * R2), int((ANCHOR[0] + wb / 2 - X0) * 2 * R2)
-            m[0:ytop + 2 * R2, max(0, xa):xb] = 255
-            m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, disk(10))
         cs, hi = cv2.findContours(m, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
         d = ""
-        for c in cs:
-            if len(c) < 12 or cv2.contourArea(c) < 6: continue
-            c = c[:, 0, :].astype(float); sg = 4.0; half = int(sg * 3)
+        for c_ in cs:
+            if len(c_) < 12 or cv2.contourArea(c_) < 6: continue
+            c_ = c_[:, 0, :].astype(float); sg = 3.5; half = int(sg * 3)
             ker = np.exp(-0.5 * (np.arange(-half, half + 1) / sg) ** 2); ker /= ker.sum()
-            ext = np.concatenate([c[-half:], c, c[:half]])
+            ext = np.concatenate([c_[-half:], c_, c_[:half]])
             sm = np.stack([np.convolve(ext[:, j], ker, mode="valid") for j in range(2)], 1)
-            ap = cv2.approxPolyDP(sm.astype(np.float32)[:, None, :], 0.5, True)[:, 0, :]
+            ap = cv2.approxPolyDP(sm.astype(np.float32)[:, None, :], 0.7, True)[:, 0, :]
             if len(ap) < 3: continue
             d += "M" + "L".join(f"{x / (2 * R2) + X0:.2f} {y / (2 * R2) + Y0:.2f}" for x, y in ap) + "Z"
         frames.append(d)
@@ -276,11 +308,11 @@ def zwischenbilder(barp, canvas):
 
 
 if __name__ == "__main__":
-    out, canvases = [], []
+    out, canvases, strapcv = [], [], []
     for p in FIGUREN:
         f = person(p)
         s, L = fit(p, f)
-        canvas = build(p, f, s, L); canvases.append(canvas)
+        canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False))
         d, bb = vectorise(canvas)
         out.append(d)
         print(p["ref"], "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
@@ -295,7 +327,7 @@ if __name__ == "__main__":
     barp = [(bar[i], bar[i + 1]) for i in range(0, len(bar), 2)]
     figs = [align(barp, resample(parse(d), N)) for d in out]
     flat = lambda pp: [round(v, 2) for q in pp for v in q]
-    data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)]}
+    data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, strapcv[k], c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)]}
     with open(mj, "w", encoding="utf-8") as f:
         f.write("/* Punktfolgen für den Morph zwischen gebogenem Stab und Luftartistik-Figuren (erzeugt mit _werkzeug/figuren_luft.py) */\n")
         f.write("window.TTGO_MORPH = " + json.dumps(data, separators=(",", ":")) + ";\n")
