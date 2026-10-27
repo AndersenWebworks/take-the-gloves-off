@@ -63,7 +63,6 @@ FIGUREN = [
          straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, close=0.007, open=0.006, blur=0.008),
     dict(pose="c"),     # einarmiges Hängen, Rumpf verdreht, ein Knie angezogen (frei entworfen)
     dict(pose="a"),     # Hängen an beiden Händen, Kopf sinkt zwischen die Arme
-    dict(pose="b"),     # kopfüber, Fuß im Gurt eingehakt, Arme hängen nach unten
 ]
 
 

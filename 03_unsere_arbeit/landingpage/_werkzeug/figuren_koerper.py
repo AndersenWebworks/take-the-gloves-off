@@ -145,32 +145,32 @@ def hals_kopf(X, Y, hals, kopfc, ang, haar=1.0, hd=1.0):
     return smin(n, kopf(X, Y, kopfc, ang, haar=haar, haardir=hd), 0.9)
 
 
-def kopf_profil(X, Y, c, ang=0.0, f=1.0, haar=1.0):
+def kopf_profil(X, Y, c, ang=0.0, f=1.0, haar=1.0, nase=1.0):
     """Kopf im Profil/Dreiviertelprofil: Schädel, Stirn, Nase, Lippen, Kinn, Kiefer; Haare als ruhige, leicht
     gewellte Masse hinten/oben (Locken wie in den Referenzen). ang in Grad (im Uhrzeigersinn), f = +1 Blick nach +x'."""
     a = np.deg2rad(ang); ca, sa = np.cos(a), np.sin(a)
     P = lambda dx, dy: (c[0] + (dx * ca - dy * sa) * HEAD, c[1] + (dx * sa + dy * ca) * HEAD)
     sk = ell(X, Y, P(-0.2 * f, -0.3), 2.85 * HEAD, 3.45 * HEAD, ang)
     stirn = ell(X, Y, P(1.35 * f, -0.7), 1.7 * HEAD, 2.0 * HEAD, ang)
-    nase = limb(X, Y, P(2.3 * f, 0.15), P(4.15 * f, 1.35), 0.62 * HEAD, 0.5 * HEAD, 0.18, 0.4)
+    nase = limb(X, Y, P(2.3 * f, 0.15), P((2.3 + 1.85 * nase) * f, 0.15 + 1.2 * nase), 0.62 * HEAD, 0.5 * HEAD, 0.18, 0.4)
     lippe = ell(X, Y, P(2.45 * f, 2.05), 0.75 * HEAD, 0.6 * HEAD, ang)
     kinn = ell(X, Y, P(2.0 * f, 3.0), 1.25 * HEAD, 1.25 * HEAD, ang)
     kiefer = ell(X, Y, P(0.3 * f, 2.25), 2.2 * HEAD, 1.7 * HEAD, ang)
     d = smin(smin(sk, stirn, 0.7), smin(kiefer, kinn, 0.5), 0.7)
     d = smin(smin(d, nase, 0.3), lippe, 0.3)
     if haar:
-        h1 = ell(X, Y, P(-1.0 * f, -1.5), 3.25 * HEAD, 2.9 * HEAD, ang)
-        h2 = ell(X, Y, P(-2.5 * f, 0.9), 1.3 * HEAD, 2.1 * HEAD, ang)
+        h1 = ell(X, Y, P(-1.0 * f, -1.5), 3.25 * HEAD * haar, 2.9 * HEAD * haar, ang)
+        h2 = ell(X, Y, P(-2.5 * f, 0.9), 1.3 * HEAD * haar, 2.1 * HEAD * haar, ang)
         d = smin(d, smin(h1, h2, 0.8), 0.7)
         for lx, ly, lr in [(-3.2, -0.3, 1.25), (-2.9, -2.4, 1.35), (-1.0, -3.9, 1.35), (1.3, -3.6, 1.15), (-3.1, 2.0, 1.1), (-2.0, 3.3, 0.9)]:
-            d = smin(d, ell(X, Y, P(lx * f, ly), lr * HEAD, lr * HEAD, 0), 0.55)               # Locken: sanfte Wellen im Umriss
+            d = smin(d, ell(X, Y, P(lx * f * haar, ly * (1 if ly > 0 else haar)), lr * HEAD * haar, lr * HEAD * haar, 0), 0.55)               # Locken: sanfte Wellen im Umriss
     return d
 
 
 # ------------------------------------------------------------------ Posen (Einheiten des Zeichens)
-def hk(X, Y, hals, c, ang, f, haar=1.0):
+def hk(X, Y, hals, c, ang, f, haar=1.0, nase=1.0):
     n = limb(X, Y, hals, c, 2.0, 1.6, 1.55, 0.5)
-    return smin(n, kopf_profil(X, Y, c, ang, f, haar), 1.0)
+    return smin(n, kopf_profil(X, Y, c, ang, f, haar, nase), 1.0)
 
 
 def pose_c(X, Y):
@@ -181,7 +181,7 @@ def pose_c(X, Y):
     d = smin(d, arm(X, Y, S2, (38.4, 43.0), (35.4, 50.6), offen_ang=-16), 0.3)
     t = rumpf(X, Y, (47.4, 33.0), S2, S1, (47.8, 39.8), (47.9, 46.6), (48.3, 51.4), (46.3, 52.2), (50.4, 51.7), breit=4.5, tail=3.5, beck=4.4, schulter=4.6)
     d = smin(d, t, 1.0)
-    d = smin(d, hk(X, Y, (47.4, 33.0), (44.6, 26.8), -22, -1), 1.0)
+    d = smin(d, hk(X, Y, (47.4, 33.0), (44.6, 26.8), -22, -1, haar=0.78, nase=1.3), 1.0)
     d = smin(d, bein(X, Y, (50.4, 51.7), (53.4, 64.2), (55.0, 76.2), 6), 1.2)
     d = smin(d, bein(X, Y, (46.3, 52.2), (40.2, 60.4), (43.6, 72.8), 8), 1.2)
     return d, [G]
