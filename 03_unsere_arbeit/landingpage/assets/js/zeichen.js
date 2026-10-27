@@ -50,12 +50,15 @@
     var M = window.TTGO_MORPH, mp = null;
     if (g && M) {
       mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      mp.setAttribute('class', 'z-morph'); mp.style.opacity = 0;
+      mp.setAttribute('class', 'z-morph'); mp.setAttribute('fill-rule', 'evenodd'); mp.style.opacity = 0;
       g.insertBefore(mp, g.firstChild);
     }
     figs.forEach(function (f) { f.removeAttribute('transform'); });
     function smooth(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
     function morphD(i, t) {
+      if (M.frames && M.frames[i]) {                    // weiche Zwischenbilder (Abstandsfeld-Überblendung)
+        var fr = M.frames[i]; return fr[Math.max(0, Math.min(fr.length - 1, Math.round(t * (fr.length - 1))))];
+      }
       var a = M.bar, b = M.figs[i], d = 'M';
       for (var k = 0; k < a.length; k += 2) {
         d += (k ? ' L' : '') + (a[k] + (b[k] - a[k]) * t).toFixed(2) + ' ' + (a[k + 1] + (b[k + 1] - a[k + 1]) * t).toFixed(2);

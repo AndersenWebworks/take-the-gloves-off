@@ -87,7 +87,7 @@
     [4.13, 0.1, 0.3, 'w']
   ];
   // Kreislauf des Zeichens: ruhen, Figuren (Daumenkino), ruhen, aufrichten, brechen
-  var L = { hold: 0.3, morph: 0.5, fade: 0.3, figHold: [0.55, 0.55, 0.55, 0.55, 0.8], back: 0.5, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
+  var L = { hold: 0.3, morph: 0.5, fade: 0.3, figHold: [0.55, 0.55, 0.55, 0.8], back: 0.5, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
   var figStart = L.hold;
   var figEnd = figStart + L.morph + (L.figHold.length - 1) * L.fade + L.figHold.reduce(function (a, b) { return a + b; }, 0);
   var backEnd = figEnd + L.back;
