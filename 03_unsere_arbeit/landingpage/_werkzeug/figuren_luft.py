@@ -10,6 +10,8 @@ Die Rohmasken (refN_rembg.png) liegen in styleguide/_werkzeug/tmp/luft und werde
 import json, os, re, math
 import numpy as np, cv2
 from PIL import Image, ImageOps
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import potrace
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -59,10 +61,9 @@ FIGUREN = [
     dict(ref="ref5.jpg", zonen=[(150, 0, 760, 322, "kill", 0), (150, 345, 306, 425, "kill", 0), (190, 420, 306, 740, "kill", 0),
                                (468, 322, 760, 612, "kill", 0), (0, 1000, 1049, 1573, "kill", 0)],
          straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, close=0.007, open=0.006, blur=0.008),
-    dict(ref="ref2.jpg", zonen=[(0, 0, 1066, 725, "kill", 0), (560, 725, 640, 772, "kill", 0), (200, 1130, 440, 1330, "open", 16)],
-         straps=[(300, 745), (597, 792)], extra=[], L=15, close=0.014, open=0.007, blur=0.007),
-    dict(ref="ref4.jpg", bau=SPEC4, straps=[(452, 478)], extra=[], blur=0.006),
-    dict(ref="ref1.webp", bau=SPEC1, straps=[(738, 338), (910, 463)], extra=[], L=14, blur=0.006),
+    dict(pose="c"),     # einarmiges Hängen, Rumpf verdreht, ein Knie angezogen (frei entworfen)
+    dict(pose="a"),     # Hängen an beiden Händen, Kopf sinkt zwischen die Arme
+    dict(pose="b"),     # kopfüber, Fuß im Gurt eingehakt, Arme hängen nach unten
 ]
 
 
@@ -176,6 +177,30 @@ def build(p, f, s, L, body=True):
     cs, hi = cv2.findContours(canvas, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)      # winzige Lücken schließen
     for c, h in zip(cs, hi[0]):
         if h[3] >= 0 and cv2.contourArea(c) < 6 * RES * RES: cv2.drawContours(canvas, [c], -1, 255, -1)
+    return canvas
+
+
+_POSEN_CACHE = {}
+
+
+def pose_canvas(name, body=True):
+    """frei entworfene Figur aus Körpersegmenten (figuren_koerper.py): Maske im Raster des Zeichens plus gerade Gurte"""
+    from figuren_koerper import pose_skaliert
+    W, H = int((X1 - X0) * RES), int((Y1 - Y0) * RES)
+    if name not in _POSEN_CACHE:
+        X, Y = np.meshgrid(X0 + (np.arange(W) + 0.5) / RES, Y0 + (np.arange(H) + 0.5) / RES)
+        d, grips, Z = pose_skaliert(name, X, Y)
+        print('   Pose', name, 'Vergrößerung', round(Z, 3))
+        _POSEN_CACHE[name] = (((d < 0) * 255).astype(np.uint8), grips)
+    mask, grips = _POSEN_CACHE[name]
+    canvas = mask.copy() if body else np.zeros((H, W), np.uint8)
+    anchor = ((ANCHOR[0] - X0) * RES, (ANCHOR[1] - Y0) * RES)
+    for g in grips: band(canvas, anchor, ((g[0] - X0) * RES, (g[1] - Y0) * RES), BAND * RES)
+    if body:
+        canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, disk(0.55 * RES))
+        cs, hi = cv2.findContours(canvas, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+        for c, h in zip(cs, hi[0]):
+            if h[3] >= 0 and cv2.contourArea(c) < 4 * RES * RES: cv2.drawContours(canvas, [c], -1, 255, -1)
     return canvas
 
 
@@ -310,12 +335,15 @@ def zwischenbilder(barp, gurt, canvas):
 if __name__ == "__main__":
     out, canvases, strapcv = [], [], []
     for p in FIGUREN:
-        f = person(p)
-        s, L = fit(p, f)
-        canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False))
+        if p.get("pose"):
+            canvas = pose_canvas(p["pose"]); canvases.append(canvas); strapcv.append(pose_canvas(p["pose"], body=False)); s, L = 1.0, 0
+        else:
+            f = person(p)
+            s, L = fit(p, f)
+            canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False))
         d, bb = vectorise(canvas)
         out.append(d)
-        print(p["ref"], "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
+        print(p.get("ref", p.get("pose")), "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
         assert bb[0] >= 31.0 and bb[2] <= 69.0 and bb[3] <= Y1 and bb[1] >= Y0 - .3, "ragt über den Zwischenraum"
     json.dump(out, open(os.path.join(TMP, "figuren.json"), "w"))
     with open(os.path.join(LP, "assets", "js", "figuren.js"), "w", encoding="utf-8") as fh:
