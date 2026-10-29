@@ -157,7 +157,7 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .lightbox button:hover { opacity: 1; color: var(--red); }
 .lb-x { top: 14px; right: 14px; } .lb-p { left: 10px; top: 50%; transform: translateY(-50%); } .lb-n { right: 10px; top: 50%; transform: translateY(-50%); }
 
-/* Zirkus: klarer Clip neben dem Text */
+/* Bühne: klarer Clip neben dem Text */
 .szene { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; }
 .szene .vid { margin: 0; position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
 .szene .vid video { width: 100%; height: 100%; object-fit: cover; }
