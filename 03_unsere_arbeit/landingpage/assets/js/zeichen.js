@@ -4,7 +4,7 @@
  * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
  * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Figuren-Pfad auf).
  * Programmierschnittstelle: set(bend, col) Stab zeichnen; halte(figur, sway, glow) Figur 0..4 stehend (sway wird ignoriert, die Figur steht still;
- * glow > 0: einziger kurzer Impuls in heißerem Rot, nur Füllfarbe); dunkel() alles aus.
+ * tt = Zeit seit dem Auftauchen: Blitz weiß -> rot -> ausfaden); dunkel() alles aus.
  */
 (function () {
   'use strict';
@@ -57,7 +57,7 @@
       });
     }
     var HOLD = ['p0', 'p1', 'p2', 'p3', 'p4'];                         // Figur i = einziges Bild der Folge p<i>
-    var HOT = [240, 62, 46];                                           // heißeres Rot für das Nachglühen
+    var WHITE = [255, 245, 238];                                       // warmes Weiß des Blitzes
 
     function pathOf(a) {
       var d = '';
@@ -69,58 +69,33 @@
       }
       return d;
     }
-    function showMorph(d, col, sway) {
+    function showMorph(d, fill) {
       stab.style.opacity = 0;
       mp.setAttribute('d', d);
-      mp.setAttribute('fill', mix(ink, red, col));
-      if (sway) mp.setAttribute('transform', 'rotate(' + sway.toFixed(3) + ' 50 8)'); else mp.removeAttribute('transform');
+      mp.setAttribute('fill', fill);
       mp.style.opacity = 1; mp.style.filter = '';
     }
-    function set(bend, col) {                           // der gebogene Stab (gerade, gebogen, weiß, rot)
+    // Stab zeichnen (gerade, gebogen, weiß, rot). alpha: Deckkraft; blitz = [Weiß-, Rotdauer], wt = Zeit seit dem Auftauchen:
+    // dann steht er schlagartig in Weiß und färbt sich ins Rot.
+    function set(bend, col, alpha, blitz, wt) {
+      var c = mix(ink, red, col);
+      if (blitz && wt >= 0) c = mix(WHITE, red, lin((wt - blitz[0]) / blitz[1]));
       stab.setAttribute('d', bentBar(BAR.bend * bend));
-      stab.setAttribute('fill', mix(ink, red, col));
-      stab.style.opacity = 1;
+      stab.setAttribute('fill', c);
+      stab.style.opacity = alpha == null ? 1 : alpha;
       if (mp) mp.style.opacity = 0;
     }
-    // Figur i = einziges Bild der Folge p<i>
-    var HOT = [240, 62, 46];                                           // heißeres Rot für das Nachglühen
-
-    function pathOf(a) {
-      var d = '';
-      for (var c = 0; c < a.length; c++) {
-        var p = a[c].p;
-        d += 'M';
-        for (var k = 0; k < p.length; k += 2) d += (k ? 'L' : '') + p[k].toFixed(2) + ' ' + p[k + 1].toFixed(2);
-        d += 'Z';
-      }
-      return d;
-    }
-    function showMorph(d, col, sway) {
-      stab.style.opacity = 0;
-      mp.setAttribute('d', d);
-      mp.setAttribute('fill', mix(ink, red, col));
-      if (sway) mp.setAttribute('transform', 'rotate(' + sway.toFixed(3) + ' 50 8)'); else mp.removeAttribute('transform');
-      mp.style.opacity = 1; mp.style.filter = '';
-    }
-    function set(bend, col) {                           // der gebogene Stab (gerade, gebogen, weiß, rot)
-      stab.setAttribute('d', bentBar(BAR.bend * bend));
-      stab.setAttribute('fill', mix(ink, red, col));
-      stab.style.opacity = 1;
-      if (mp) mp.style.opacity = 0;
-    }
-    function morph(name, u, rev, col) {
-      if (!mp || !S[name]) return;
-      var last = S[name].length - 1;
-      showMorph(frameD(name, (rev ? 1 - u : u) * last), col == null ? 1 : col, 0);
-    }
-    // Figur i (0..4) steht vollständig da. glow > 0: kurzer Impuls nach dem Flash (heißeres Rot, nur Füllfarbe,
-    // nie Weiß, kein Filter); 0 = Normalzustand.
-    function halte(i, sway, glow) {
+    // Figur i (0..4), tt = Sekunden seit dem Auftauchen, dur = Haltezeit. Blitz: schlagartig warmes Weiß (kleiner weißer Schein),
+    // dann Weiß -> Rot, Rot steht, am Ende der Haltezeit ausfaden. Nie Drehung, Skalierung oder Versatz: die Figur steht still.
+    function halte(i, tt, dur) {
       if (!mp) return;
-      showMorph(pathOf(S[HOLD[i]][0]), 1, 0);          // nie Drehung, nie Filter: die Figur steht absolut still
-      if (glow > 0) mp.setAttribute('fill', mix(red, HOT, 0.8));   // kurzer harter Impuls, nur Füllfarbe
+      var F = opts.flash || {};
+      var wWhite = F.white == null ? 0.05 : F.white, wRed = F.red == null ? 0.12 : F.red, wGlow = F.glow == null ? 0.06 : F.glow, wFade = F.fade == null ? 0.4 : F.fade;
+      showMorph(pathOf(S[HOLD[i]][0]), mix(WHITE, red, lin((tt - wWhite) / wRed)));
+      mp.style.opacity = 1 - lin((tt - dur * (1 - wFade)) / (dur * wFade));
+      if (tt < wGlow) mp.style.filter = 'drop-shadow(0 0 ' + (2.2 * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + (0.9 * (1 - tt / wGlow)).toFixed(2) + '))';
     }
-    function dunkel() {                                 // Figur aus (Dunkelphase des Flash): weder Stab noch Figur
+    function dunkel() {                                 // Bild aus (Dunkelphase): weder Stab noch Figur
       if (!mp) return;
       stab.style.opacity = 0; mp.style.opacity = 0; mp.style.filter = '';
     }
