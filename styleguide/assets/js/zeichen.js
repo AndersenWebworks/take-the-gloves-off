@@ -1,8 +1,10 @@
 /* Take the gloves off! – animierte Bildmarke
- * Die drei Stäbe werden eingezählt, der mittlere biegt sich auf die Vier, wird rot,
- * geht in Überblendungen durch die Figuren (Daumenkino) und wird wieder zum geraden Stab.
- * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f' })
- * Im svg: <path class="z-stab">, optional <g class="z-figuren"> mit einem <path> je Figur.
+ * Der mittlere Stab biegt sich, wird rot und wechselt per Flash (kein Morph) zwischen hängenden Luftartistik-Figuren.
+ * Die Umrisse der fünf Figuren stehen in morph.js (je Figur ein Bild p0..p4).
+ * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
+ * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Figuren-Pfad auf).
+ * Programmierschnittstelle: set(bend, col) Stab zeichnen; halte(figur, sway, glow) Figur 0..4 stehend (sway wird ignoriert, die Figur steht still;
+ * tt = Zeit seit dem Auftauchen: Blitz weiß -> rot -> ausfaden); dunkel() alles aus.
  */
 (function () {
   'use strict';
@@ -32,111 +34,76 @@
     opts = opts || {};
     var stab = svg.querySelector('.z-stab');
     var g = svg.querySelector('.z-figuren');
-    if (g && !g.children.length && window.TTGO_FIGUREN) {
-      window.TTGO_FIGUREN.forEach(function (d) {
-        var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        p.setAttribute('d', d); g.appendChild(p);
-      });
-    }
-    // Figuren liegen hinter den äußeren Stäben: was breiter ist als die Zelle, verschwindet hinter dem Gitter
-    if (g && g !== svg.firstElementChild) svg.insertBefore(g, svg.firstElementChild);
-    var figs = Array.prototype.slice.call(svg.querySelectorAll('.z-figuren path:not(.z-morph)'));
+    if (g && g !== svg.firstElementChild) svg.insertBefore(g, svg.firstElementChild);   // Figuren hinter den äußeren Stäben
     var ink = hex(opts.ink || '#efebe3'), red = hex(opts.red || '#d22b1f');
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    figs.forEach(function (f) { f.style.opacity = 0; f.setAttribute('fill', opts.red || '#d22b1f'); });
-
-    // Der Stab verformt sich zur ersten Figur und die letzte Figur zurück zum Stab (Morph über gleich viele Umrisspunkte).
-    // Zwischen zwei Figuren liegt eine Doppelbelichtung.
-    var M = window.TTGO_MORPH, mp = null;
+    var M = window.TTGO_MORPH, mp = null, S = null;
     if (g && M) {
       mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      mp.setAttribute('class', 'z-morph'); mp.style.opacity = 0;
-      g.insertBefore(mp, g.firstChild);
-    }
-    figs.forEach(function (f) { f.removeAttribute('transform'); });
-    function smooth(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
-    function morphD(i, t) {
-      var a = M.bar, b = M.figs[i], d = 'M';
-      for (var k = 0; k < a.length; k += 2) {
-        d += (k ? ' L' : '') + (a[k] + (b[k] - a[k]) * t).toFixed(2) + ' ' + (a[k + 1] + (b[k + 1] - a[k + 1]) * t).toFixed(2);
-      }
-      return d + ' Z';
-    }
-    function state(bend, col, figOp) {
-      stab.setAttribute('d', bentBar(BAR.bend * bend));
-      var fill = mix(ink, red, col);
-      stab.setAttribute('fill', fill);
-      var open = 0, top = 0;
-      figs.forEach(function (f, i) { var v = figOp[i] || 0; open += v; if (v > (figOp[top] || 0)) top = i; });
-      if (open > 0.999) {                               // Figuren, auch während der Doppelbelichtung
-        stab.style.opacity = 0;
-        if (mp) mp.style.opacity = 0;
-        figs.forEach(function (f, i) { f.style.opacity = smooth(figOp[i] || 0); });
-      } else if (open > 0.001 && mp && M.figs[top]) { // Stab und Figur verformen sich ineinander
-        stab.style.opacity = 0;
-        mp.setAttribute('d', morphD(top, smooth(open)));
-        mp.setAttribute('fill', fill);
-        mp.style.opacity = 1;
-        figs.forEach(function (f) { f.style.opacity = 0; });
-      } else {
-        stab.style.opacity = 1;
-        if (mp) mp.style.opacity = 0;
-        figs.forEach(function (f) { f.style.opacity = 0; });
-      }
-    }
-    var api = { set: state, figuren: figs.length };
-    if (opts.manual) return api;                      // Ablauf kommt von außen (Kopf der Seite)
-    if (reduce || opts.still) { state(1, 1, []); return api; }
-
-    // Zeitplan in Sekunden: kurz dunkel, die Stäbe werden eingezählt (eins, zwei, drei),
-    // auf die Vier biegt sich der mittlere. Am Ende verlöschen alle drei, und es geht von vorn los.
-    var nf = figs.length, hold = 0.6, fade = 0.3, morph = 0.5;
-    var COUNT = [0.25, 0.65, 1.05], countDur = 0.32;
-    var tBend0 = 1.45, tBend1 = tBend0 + 0.9;
-    var tFig0 = tBend1 + 0.35;                        // der Stab beginnt sich zur Figur zu verformen
-    var figEnd = nf ? tFig0 + morph + nf * hold + (nf - 1) * fade : tBend1 + 1.2;
-    var tBack1 = figEnd + morph;                      // wieder der gebogene Stab
-    var tUn0 = tBack1 + 1.2, tUn1 = tUn0 + 0.8;
-    var tOut0 = tUn1 + 0.5, tOut1 = tOut0 + 0.35;
-    var total = tOut1 + 0.15;
-    var start = null;
-    var outer = Array.prototype.slice.call(svg.querySelectorAll(':scope > rect'));
-    var counted = outer.length === 2 ? [outer[0], stab, outer[1]] : [];
-    function expoOut(u) { return u >= 1 ? 1 : 1 - Math.pow(2, -10 * u); }
-    function scaleY(el, k) {
-      el.setAttribute('transform', k >= 1 ? '' : 'translate(0 ' + BAR.top + ') scale(1 ' + Math.max(k, 0.0001) + ') translate(0 ' + (-BAR.top) + ')');
-    }
-
-    function frame(now) {
-      if (start === null) start = now;
-      var s = ((now - start) / 1000) % total;
-      var bend, col, op = [];
-      if (s < tBend0) { bend = 0; col = 0; }
-      else if (s < tBend1) { var u = ease((s - tBend0) / (tBend1 - tBend0)); bend = u; col = lin((s - tBend0 - .3) / (tBend1 - tBend0 - .3)); }
-      else if (s < tUn0) { bend = 1; col = 1; }
-      else if (s < tUn1) { var v = ease((s - tUn0) / (tUn1 - tUn0)); bend = 1 - v; col = 1 - lin(v * 1.3); }
-      else { bend = 0; col = 0; }
-      for (var i = 0, a = tFig0; i < nf; i++) {
-        var inD = i ? fade : morph, outD = i < nf - 1 ? fade : morph;
-        var b = a + inD + hold;                        // Ausblenden beginnt (nächste kommt)
-        var o = 0;
-        if (s >= a && s < a + inD) o = (s - a) / inD;
-        else if (s >= a + inD && s < b) o = 1;
-        else if (s >= b && s < b + outD) o = 1 - (s - b) / outD;
-        op.push(o);
-        a = b;
-      }
-      state(bend, col, op);
-      counted.forEach(function (el, j) {
-        var k = lin((s - COUNT[j]) / countDur);
-        scaleY(el, expoOut(k));
-        if (k < 1) el.style.opacity = Math.min(1, k * 2.5);  // danach gilt wieder, was state() setzt
-        else if (el !== stab) el.style.opacity = 1;
+      mp.setAttribute('class', 'z-morph'); mp.setAttribute('fill-rule', 'evenodd'); mp.style.opacity = 0;
+      g.appendChild(mp);
+      // Stützformen entpacken: je Bild Liste von Umrissen { id, p: Float32Array(x0,y0,x1,y1,...) }
+      S = {};
+      Object.keys(M.seq).forEach(function (name) {
+        S[name] = M.seq[name].map(function (row) {
+          var i = 1, fr = [];
+          for (var c = 0; c < row[0]; c++) {
+            var id = row[i], n = row[i + 1], p = new Float32Array(2 * n), x = row[i + 2], y = row[i + 3];
+            p[0] = x / M.q; p[1] = y / M.q;
+            for (var k = 1; k < n; k++) { x += row[i + 2 + 2 * k]; y += row[i + 3 + 2 * k]; p[2 * k] = x / M.q; p[2 * k + 1] = y / M.q; }
+            fr.push({ id: id, p: p }); i += 2 + 2 * n;
+          }
+          return fr;
+        });
       });
-      svg.style.opacity = s < tOut0 ? 1 : 1 - lin((s - tOut0) / (tOut1 - tOut0));
-      requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);
-    return api;
+    var HOLD = ['p0', 'p1', 'p2', 'p3', 'p4'];                         // Figur i = einziges Bild der Folge p<i>
+    var WHITE = [255, 245, 238];                                       // warmes Weiß des Blitzes
+
+    function pathOf(a) {
+      var d = '';
+      for (var c = 0; c < a.length; c++) {
+        var p = a[c].p;
+        d += 'M';
+        for (var k = 0; k < p.length; k += 2) d += (k ? 'L' : '') + p[k].toFixed(2) + ' ' + p[k + 1].toFixed(2);
+        d += 'Z';
+      }
+      return d;
+    }
+    function showMorph(d, fill) {
+      stab.style.opacity = 0;
+      mp.setAttribute('d', d);
+      mp.setAttribute('fill', fill);
+      mp.style.opacity = 1; mp.style.filter = '';
+    }
+    // Stab zeichnen (gerade, gebogen, weiß, rot). alpha: Deckkraft; blitz = [Weiß-, Rotdauer], wt = Zeit seit dem Auftauchen:
+    // dann steht er schlagartig in Weiß und färbt sich ins Rot.
+    function set(bend, col, alpha, blitz, wt) {
+      var c = mix(ink, red, col);
+      if (blitz && wt >= 0) c = mix(WHITE, red, lin((wt - blitz[0]) / blitz[1]));
+      stab.setAttribute('d', bentBar(BAR.bend * bend));
+      stab.setAttribute('fill', c);
+      stab.style.opacity = alpha == null ? 1 : alpha;
+      if (mp) mp.style.opacity = 0;
+    }
+    // Figur i (0..4), tt = Sekunden seit dem Auftauchen, dur = Haltezeit, fx = Blitzdaten der Partitur. Blitz: schlagartig warmes Weiß (kleiner weißer Schein),
+    // dann Weiß -> Rot, Rot steht, am Ende der Haltezeit ausfaden. Nie Drehung, Skalierung oder Versatz: die Figur steht still.
+    // fx (aus der Partitur): weiss, rot (Sekunden), glow (Dauer des Scheins), schein (Stärke), fade (Sekunden Ausglimmen am Ende)
+    function halte(i, tt, dur, fx) {
+      if (!mp) return;
+      var F = fx || opts.flash || {};
+      var wWhite = F.weiss == null ? 0.05 : F.weiss, wRed = F.rot == null ? 0.12 : F.rot, wGlow = F.glow == null ? 0.06 : F.glow,
+        wFade = F.fade == null ? dur * 0.4 : Math.min(F.fade, dur), k = F.schein == null ? 1 : F.schein;
+      showMorph(pathOf(S[HOLD[i]][0]), mix(WHITE, red, lin((tt - wWhite) / wRed)));
+      mp.style.opacity = 1 - lin((tt - (dur - wFade)) / wFade);
+      if (tt < wGlow) {
+        var rk = F.radius == null ? k : F.radius, ds = 'drop-shadow(0 0 ' + (2.2 * rk * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + Math.min(1, 0.9 * k * (1 - tt / wGlow)).toFixed(2) + '))';
+        mp.style.filter = F.radius != null && k > 2 ? ds + ' ' + ds : ds;   // enger Schein mit Doppelschicht: bleibt hell, sitzt dicht am Umriss
+      }
+    }
+    function dunkel() {                                 // Bild aus (Dunkelphase): weder Stab noch Figur
+      if (!mp) return;
+      stab.style.opacity = 0; mp.style.opacity = 0; mp.style.filter = '';
+    }
+    return { set: set, halte: halte, dunkel: dunkel, figuren: 5 };
   };
 })();
