@@ -8,6 +8,8 @@ import numpy as np
 
 HEAD = 1.2        # Kopf etwas größer (Körperlänge : Kopf etwa 1 : 6,5 wie bei den alten Figuren)
 TORSO = 1.2       # Rumpfbreite
+RUMPF_F = 1.0     # Faktor auf die Rumpfbreite (nur für einzelne Posen verändert)
+OSCHENKEL_F = 1.0 # Faktor auf Oberschenkel und Hosenbein
 GIRTH = 1.32      # Gliedmaßen und Rumpf etwas kräftiger als der Durchschnitt (Artistenkörper, Wucht wie die alten Figuren)
 
 
@@ -121,20 +123,21 @@ def arm(X, Y, S, E, W, offen_ang=None, G=None, faust_ang=0.0, r=(2.05, 2.15, 1.2
 
 
 def bein(X, Y, Hh, K, A, fuss_ang, hose=True, fuss=True):
-    th = limb(X, Y, Hh, K, 3.35, 3.6, 2.0, 0.3)
+    th = limb(X, Y, Hh, K, 3.35 * OSCHENKEL_F, 3.6 * OSCHENKEL_F, 2.0, 0.3)
     sh = limb(X, Y, K, A, 2.0, 2.3, 1.08, 0.3)
     d = smin(th, sh, 0.5)
     if hose:
         Hh_, K_ = np.array(Hh, float), np.array(K, float)
         end = Hh_ + (K_ - Hh_) * 0.42
-        d = smin(d, cut(X, Y, Hh_, end, 3.5), 0.3)
+        d = smin(d, cut(X, Y, Hh_, end, 3.5 * OSCHENKEL_F), 0.3)
     if fuss: d = smin(d, fuss_gestreckt(X, Y, A, fuss_ang), 0.45)
-    return smin(d, ell(X, Y, Hh, 3.5, 3.5), 1.2)
+    return smin(d, ell(X, Y, Hh, 3.5 * OSCHENKEL_F, 3.5 * OSCHENKEL_F), 1.2)
 
 
 def rumpf(X, Y, hals, SL, SR, brust, taille, becken, HL, HR, breit=5.1, tail=3.9, beck=4.7, tr=2.0, schulter=5.4):
     """Rumpf: V-förmig (breite Schulterpartie, Taille, Becken), Trapezius läuft breit in den Hals"""
-    d = limbp(X, Y, hals, becken, [(0, 2.6), (0.10, schulter * 0.92 * TORSO / GIRTH), (0.28, breit * TORSO / GIRTH), (0.55, tail * TORSO / GIRTH), (0.80, ((tail + beck) / 2 + .3) * TORSO / GIRTH), (1.0, beck * TORSO / GIRTH)])
+    F = RUMPF_F
+    d = limbp(X, Y, hals, becken, [(0, 2.6), (0.10, schulter * 0.92 * TORSO / GIRTH * F), (0.28, breit * TORSO / GIRTH * F), (0.55, tail * TORSO / GIRTH * F), (0.80, ((tail + beck) / 2 + .3) * TORSO / GIRTH * F), (1.0, beck * TORSO / GIRTH * F)])
     d = smin(d, limb(X, Y, hals, SL, tr + .3, tr * .95, 2.0, .5), 1.6)
     d = smin(d, limb(X, Y, hals, SR, tr + .3, tr * .95, 2.0, .5), 1.6)
     return d
@@ -173,9 +176,12 @@ def hk(X, Y, hals, c, ang, f, haar=1.0, nase=1.0):
     return smin(n, kopf_profil(X, Y, c, ang, f, haar, nase), 1.0)
 
 
-def pose_c(X, Y):
+def pose_c(X, Y, schlank=True):
     """einarmiges Hängen: ein Arm zieht (Ellbogen nach außen), Rumpf verdreht, ein Knie angezogen, freier Arm schwingt aus"""
+    global RUMPF_F, OSCHENKEL_F, HEAD
     G = (50.0, 19.0)
+    f0 = (RUMPF_F, OSCHENKEL_F, HEAD)
+    if schlank: RUMPF_F, OSCHENKEL_F, HEAD = 0.91, 0.91, HEAD * 0.92   # v7: Rumpf und Oberschenkel 9 % schmaler, Kopf 8 % kleiner
     S1, S2 = (50.8, 33.2), (44.0, 36.4)
     d = arm(X, Y, S1, (57.0, 27.2), (50.3, 21.6), G=G, faust_ang=0)
     d = smin(d, arm(X, Y, S2, (38.4, 43.0), (35.4, 50.6), offen_ang=-16), 0.3)
@@ -184,6 +190,7 @@ def pose_c(X, Y):
     d = smin(d, hk(X, Y, (47.4, 33.0), (44.6, 26.8), -22, -1, haar=0.78, nase=1.3), 1.0)
     d = smin(d, bein(X, Y, (50.4, 51.7), (53.4, 64.2), (55.0, 76.2), 6), 1.2)
     d = smin(d, bein(X, Y, (46.3, 52.2), (40.2, 60.4), (43.6, 72.8), 8), 1.2)
+    RUMPF_F, OSCHENKEL_F, HEAD = f0
     return d, [G]
 
 
@@ -216,6 +223,7 @@ def pose_a(X, Y):
 
 
 POSEN = {"a": pose_a, "b": pose_b, "c": pose_c}
+POSEN_REF = {"c": lambda X, Y: pose_c(X, Y, schlank=False)}   # Maße für Maßstab und Lage stammen von der v6-Fassung, damit Höhe und Handposition gleich bleiben
 
 
 def pose_skaliert(name, X, Y, unten=89.0, links=31.8, rechts=68.2, zentrum=(50.0, 19.0), q=1.0):
@@ -223,7 +231,7 @@ def pose_skaliert(name, X, Y, unten=89.0, links=31.8, rechts=68.2, zentrum=(50.0
     und dann senkrecht so verschieben, dass der tiefste Punkt bei `unten` liegt. Die Gurte werden dadurch länger."""
     f = POSEN[name]
     xs, ys = np.meshgrid(np.arange(links - 12, rechts + 12, 0.25), np.arange(8, 120, 0.25))
-    d0, _ = f(xs, ys)
+    d0, _ = POSEN_REF.get(name, f)(xs, ys)
     m = d0 < 0
     cx, cy = zentrum
     Z = min((unten - cy) / (ys[m].max() - cy), (cx - links) / (cx - xs[m].min()), (rechts - cx) / (xs[m].max() - cx)) * q

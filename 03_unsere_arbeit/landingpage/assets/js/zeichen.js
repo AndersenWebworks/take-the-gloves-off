@@ -47,21 +47,18 @@
 
     // Der Stab verformt sich zur ersten Figur und die letzte Figur zurück zum Stab (Morph über gleich viele Umrisspunkte).
     // Zwischen zwei Figuren liegt eine Doppelbelichtung.
-    var M = window.TTGO_MORPH, mp = null, mp2 = null;
+    var M = window.TTGO_MORPH, mp = null;
     if (g && M) {
       mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       mp.setAttribute('class', 'z-morph'); mp.setAttribute('fill-rule', 'evenodd'); mp.style.opacity = 0;
       g.insertBefore(mp, g.firstChild);
-      mp2 = mp.cloneNode(false); g.insertBefore(mp2, g.firstChild);   // Nachbarbild für weiches Überblenden zwischen den Zwischenbildern
     }
     figs.forEach(function (f) { f.removeAttribute('transform'); });
     function smooth(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
     function morphD(i, t) {
       if (M.frames && M.frames[i]) {                    // weiche Zwischenbilder (Abstandsfeld-Überblendung)
-        var fr = M.frames[i], pos = Math.max(0, Math.min(fr.length - 1, t * (fr.length - 1))), k = Math.min(fr.length - 2, Math.floor(pos));
-        morphD.next = fr[k + 1]; morphD.w = pos - k; return fr[k];
+        var fr = M.frames[i]; return fr[Math.max(0, Math.min(fr.length - 1, Math.round(t * (fr.length - 1))))];
       }
-      morphD.next = null;
       var a = M.bar, b = M.figs[i], d = 'M';
       for (var k = 0; k < a.length; k += 2) {
         d += (k ? ' L' : '') + (a[k] + (b[k] - a[k]) * t).toFixed(2) + ' ' + (a[k + 1] + (b[k + 1] - a[k + 1]) * t).toFixed(2);
@@ -74,23 +71,28 @@
       stab.setAttribute('fill', fill);
       var open = 0, top = 0;
       figs.forEach(function (f, i) { var v = figOp[i] || 0; open += v; if (v > (figOp[top] || 0)) top = i; });
-      if (open > 0.999) {                               // Figuren, auch während der Doppelbelichtung
+      var pair = -1;                                    // zwei Nachbarfiguren zugleich sichtbar: Übergang
+      figs.forEach(function (f, i) { if ((figOp[i] || 0) > 0.001 && (figOp[i + 1] || 0) > 0.001) pair = i; });
+      if (open > 0.999 && pair >= 0 && mp && M.paare && M.paare[pair]) {   // Formmorph Figur -> Figur, immer genau eine deckende Form
+        var fr = M.paare[pair], pp = smooth((figOp[pair + 1] || 0) / ((figOp[pair] || 0) + (figOp[pair + 1] || 0)));
+        stab.style.opacity = 0;
+        mp.setAttribute('d', fr[Math.max(0, Math.min(fr.length - 1, Math.round(pp * (fr.length - 1))))]);
+        mp.setAttribute('fill', fill);
+        mp.style.opacity = 1;
+        figs.forEach(function (f) { f.style.opacity = 0; });
+      } else if (open > 0.999) {                        // eine Figur steht
         stab.style.opacity = 0;
         if (mp) mp.style.opacity = 0;
-        if (mp2) mp2.style.opacity = 0;
         figs.forEach(function (f, i) { f.style.opacity = smooth(figOp[i] || 0); });
       } else if (open > 0.001 && mp && M.figs[top]) { // Stab und Figur verformen sich ineinander
         stab.style.opacity = 0;
         mp.setAttribute('d', morphD(top, smooth(open)));
         mp.setAttribute('fill', fill);
         mp.style.opacity = 1;
-        if (mp2 && morphD.next) { mp2.setAttribute('d', morphD.next); mp2.setAttribute('fill', fill); mp2.style.opacity = morphD.w; }
-        else if (mp2) mp2.style.opacity = 0;
         figs.forEach(function (f) { f.style.opacity = 0; });
       } else {
         stab.style.opacity = 1;
         if (mp) mp.style.opacity = 0;
-        if (mp2) mp2.style.opacity = 0;
         figs.forEach(function (f) { f.style.opacity = 0; });
       }
     }

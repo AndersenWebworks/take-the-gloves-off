@@ -87,9 +87,9 @@
     [4.13, 0.1, 0.3, 'w']
   ];
   // Kreislauf des Zeichens: ruhen, Figuren (Daumenkino), ruhen, aufrichten, brechen
-  // Takt der Verwandlung: gleich lange Haltezeiten (figHold) für alle drei Figuren, ein Übergangsmaß (1,0 s) für
+  // Takt der Verwandlung: gleich lange Haltezeiten (figHold) für alle drei Figuren, ein Übergangsmaß (0,8 s) für
   // Stab -> Figur, Figur -> Figur und Figur -> Stab; danach ruht der gebogene Stab, richtet sich auf und bricht.
-  var L = { hold: 0.4, morph: 1.0, fade: 1.0, figHold: [1.7, 1.7, 1.7], back: 1.0, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
+  var L = { hold: 0.4, morph: 0.8, fade: 0.8, figHold: [1.7, 1.7, 1.7], back: 0.8, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
   var figStart = L.hold;
   var figEnd = figStart + L.morph + (L.figHold.length - 1) * L.fade + L.figHold.reduce(function (a, b) { return a + b; }, 0);
   var backEnd = figEnd + L.back;

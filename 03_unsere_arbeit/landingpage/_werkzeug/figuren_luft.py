@@ -289,8 +289,28 @@ def align(bar, fig):
     return fig[off:] + fig[:off]
 
 
-K = 20           # Zwischenbilder je Verwandlung (Stab -> Figur)
+K = 30           # Zwischenbilder je Verwandlung (Stab -> Figur)
+KP = 36          # Zwischenbilder je Verwandlung Figur -> Figur
 R2 = 12          # Pixel je Einheit für die Abstandsfelder
+
+
+def pfad_aus_feld(f):
+    """Abstandsfeld (negativ = innen) -> geglätteter Pfad mit einer einzigen deckenden Form"""
+    up = cv2.resize(f, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    m = (up < 0).astype(np.uint8) * 255
+    m = cv2.morphologyEx(m, cv2.MORPH_OPEN, disk(2))
+    cs, hi = cv2.findContours(m, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    d = ""
+    for c_ in cs:
+        if len(c_) < 12 or cv2.contourArea(c_) < 6: continue
+        c_ = c_[:, 0, :].astype(float); sg = 3.5; half = int(sg * 3)
+        ker = np.exp(-0.5 * (np.arange(-half, half + 1) / sg) ** 2); ker /= ker.sum()
+        ext = np.concatenate([c_[-half:], c_, c_[:half]])
+        sm = np.stack([np.convolve(ext[:, j], ker, mode="valid") for j in range(2)], 1)
+        ap = cv2.approxPolyDP(sm.astype(np.float32)[:, None, :], 0.7, True)[:, 0, :]
+        if len(ap) < 3: continue
+        d += "M" + "L".join(f"{x / (2 * R2) + X0:.2f} {y / (2 * R2) + Y0:.2f}" for x, y in ap) + "Z"
+    return d
 
 
 def zwischenbilder(barp, gurt, canvas):
@@ -306,6 +326,9 @@ def zwischenbilder(barp, gurt, canvas):
     def shift(m, dx):
         return cv2.warpAffine(m, np.float32([[1, 0, dx], [0, 1, 0]]), (W, H), flags=cv2.INTER_NEAREST)
     SPLIT = 0.5
+    body_ = cv2.morphologyEx(fig & (1 - gur), cv2.MORPH_OPEN, disk(4)); body_ = biggest(body_)
+    ys_, xs_ = np.nonzero(body_); kk_ = ys_ < ys_.min() + 2 * R2
+    px_, py_ = float(xs_[kk_].mean()), float(ys_.min() + 3 * R2)          # Handpunkt: oberer Rand des Körpers
     frames = []
     for i in range(K):
         t = i / (K - 1)
@@ -315,23 +338,62 @@ def zwischenbilder(barp, gurt, canvas):
             f = (1 - u) * sd(shift(bar, c - cx(bar))) + u * sd(shift(gur, c - cx(gur)))
         else:                                             # Gurt -> ganze Figur (Körper wächst aus den Haltepunkten)
             u = (t - SPLIT) / (1 - SPLIT); u = u * u * (3 - 2 * u)
-            f = (1 - u) * sd(gur) + u * sd(fig)
-        up = cv2.resize(f, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        m = (up < 0).astype(np.uint8) * 255
-        m = cv2.morphologyEx(m, cv2.MORPH_OPEN, disk(2))
-        cs, hi = cv2.findContours(m, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-        d = ""
-        for c_ in cs:
-            if len(c_) < 12 or cv2.contourArea(c_) < 6: continue
-            c_ = c_[:, 0, :].astype(float); sg = 3.5; half = int(sg * 3)
-            ker = np.exp(-0.5 * (np.arange(-half, half + 1) / sg) ** 2); ker /= ker.sum()
-            ext = np.concatenate([c_[-half:], c_, c_[:half]])
-            sm = np.stack([np.convolve(ext[:, j], ker, mode="valid") for j in range(2)], 1)
-            ap = cv2.approxPolyDP(sm.astype(np.float32)[:, None, :], 0.7, True)[:, 0, :]
-            if len(ap) < 3: continue
-            d += "M" + "L".join(f"{x / (2 * R2) + X0:.2f} {y / (2 * R2) + Y0:.2f}" for x, y in ap) + "Z"
+            # der Körper wächst als verkleinerte Silhouette aus den Haltepunkten (Skalierung um den Handpunkt: keine Spitzen)
+            k = max(u, 0.02)
+            M_ = np.float32([[k, 0, px_ * (1 - k)], [0, k, py_ * (1 - k)]])
+            kw = cv2.warpAffine(fig * 255, M_, (W, H), flags=cv2.INTER_LINEAR)
+            f = sd(((kw > 127).astype(np.uint8)) | gur)
+        d = pfad_aus_feld(f)
         frames.append(d)
     return frames
+
+
+def paar_bilder(ca, cb, ga, gb):
+    """Formmorph Figur A -> Figur B, zu jedem Zeitpunkt genau eine deckende Form.
+    Körper und Gurt werden getrennt gemorpht und vereinigt:
+    - Körper (ohne Gurt): Abstandsfelder werden überblendet, die Körpermitten laufen zusammen, die Fläche wächst linear
+      (Flächenerhalt), das Feld wird leicht geglättet;
+    - Gurt: A -> ein einzelnes Band vom Ansatz zu den (gemittelten) Händen -> B, ebenfalls flächentreu.
+    Das Band hält Gurt und Körper in jedem Bild zusammen."""
+    W, H = int((X1 - X0) * R2), int((Y1 - Y0) * R2)
+    rs = lambda c: (cv2.resize(c, (W, H), interpolation=cv2.INTER_AREA) > 127).astype(np.uint8)
+    A, B, GA, GB = rs(ca), rs(cb), rs(ga), rs(gb)
+    sd = lambda m: cv2.distanceTransform(1 - m, cv2.DIST_L2, 5) - cv2.distanceTransform(m, cv2.DIST_L2, 5)
+    sm = lambda u: u * u * (3 - 2 * u)
+    def koerper(M, G):
+        m = M & (1 - G)
+        return biggest(cv2.morphologyEx(m, cv2.MORPH_OPEN, disk(4)))
+    bA, bB = koerper(A, GA), koerper(B, GB)
+    shift = lambda f, dx: cv2.warpAffine(f, np.float32([[1, 0, dx], [0, 1, 0]]), (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    cen = lambda m: np.nonzero(m)[1].mean()
+    def treu(f, ziel):
+        lo, hi_ = -40.0, 60.0
+        for _ in range(30):
+            mid = (lo + hi_) / 2
+            if (f < mid).sum() < ziel: lo = mid
+            else: hi_ = mid
+        return f - (lo + hi_) / 2
+    def kopf(m):
+        ys, xs = np.nonzero(m); k = ys < ys.min() + 2 * R2
+        return xs[k].mean(), ys.min() + 6 * R2
+    fbA, fbB, fgA, fgB = sd(bA), sd(bB), sd(GA), sd(GB)
+    ca_, cb_ = cen(bA), cen(bB); ta, tb = kopf(bA), kopf(bB)
+    out = []
+    for i in range(KP):
+        u = i / (KP - 1)
+        c = (1 - u) * ca_ + u * cb_
+        fb = treu((1 - u) * shift(fbA, c - ca_) + u * shift(fbB, c - cb_), (1 - u) * bA.sum() + u * bB.sum())
+        sg = 9 * math.sin(math.pi * u)                    # in der Mitte der Verwandlung am weichsten, an den Enden unverändert
+        if sg > 0.3: fb = treu(cv2.GaussianBlur(fb, (0, 0), sg), (1 - u) * bA.sum() + u * bB.sum())
+        g = ((1 - u) * ta[0] + u * tb[0], (1 - u) * ta[1] + u * tb[1])
+        link = np.zeros((H, W), np.uint8); band(link, ((ANCHOR[0] - X0) * R2, 0), g, BAND * R2)
+        Lk = (link > 0).astype(np.uint8); fl = sd(Lk)
+        if u < 0.5:
+            v = sm(u / 0.5); fs = treu((1 - v) * fgA + v * fl, (1 - v) * GA.sum() + v * Lk.sum())
+        else:
+            v = sm((u - 0.5) / 0.5); fs = treu((1 - v) * fl + v * fgB, (1 - v) * Lk.sum() + v * GB.sum())
+        out.append(pfad_aus_feld(np.minimum(fb, fs)))
+    return out
 
 
 if __name__ == "__main__":
@@ -357,7 +419,8 @@ if __name__ == "__main__":
     barp = [(bar[i], bar[i + 1]) for i in range(0, len(bar), 2)]
     figs = [align(barp, resample(parse(d), N)) for d in out]
     flat = lambda pp: [round(v, 2) for q in pp for v in q]
-    data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, strapcv[k], c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)]}
+    data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, strapcv[k], c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)],
+            "paare": [paar_bilder(canvases[k], canvases[k + 1], strapcv[k], strapcv[k + 1]) for k in range(len(canvases) - 1)]}
     with open(mj, "w", encoding="utf-8") as f:
         f.write("/* Punktfolgen für den Morph zwischen gebogenem Stab und Luftartistik-Figuren (erzeugt mit _werkzeug/figuren_luft.py) */\n")
         f.write("window.TTGO_MORPH = " + json.dumps(data, separators=(",", ":")) + ";\n")
