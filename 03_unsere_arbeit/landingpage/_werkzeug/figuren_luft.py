@@ -26,7 +26,8 @@ BAND = 1.8                                   # Gurtbreite (Zeichen-Einheiten)
 RES = 24                                     # Pixel je Einheit beim Zusammensetzen
 TRACE = 9                                    # Pixel je Einheit beim Nachzeichnen
 LMIN = 9.0                                   # kürzester Gurt (Abstand der Haltepunkte unter dem Ansatz)
-BOTTOM = 89.5                                # tiefster erlaubter Punkt
+BOTTOM = 89.0                                # tiefster Punkt aller drei Figuren (Stab-Unterkante liegt bei 92)
+POSE_MASSSTAB = 0.90                         # frei entworfene Figuren gegenüber der vollen Füllung etwas kleiner, damit sie neben dem schlanken Spagat nicht massiger wirken
 
 # zonen = [(x0,y0,x1,y1,modus,r)]: kill löscht, open behält nur dicke Teile (entfernt Gurte); Koordinaten im Foto
 # straps = Haltepunkte im Foto, mit dem Ansatz durch gerade Bänder verbunden; extra = weitere Bänder (Start, Ende)
@@ -60,7 +61,7 @@ SPEC1 = [   # ref1
 FIGUREN = [
     dict(ref="ref5.jpg", zonen=[(150, 0, 760, 322, "kill", 0), (150, 345, 306, 425, "kill", 0), (190, 420, 306, 740, "kill", 0),
                                (468, 322, 760, 612, "kill", 0), (0, 1000, 1049, 1573, "kill", 0)],
-         straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, close=0.007, open=0.006, blur=0.008),
+         straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, unten=True, close=0.007, open=0.006, blur=0.008),
     dict(pose="c"),     # einarmiges Hängen, Rumpf verdreht, ein Knie angezogen (frei entworfen)
     dict(pose="a"),     # Hängen an beiden Händen, Kopf sinkt zwischen die Arme
 ]
@@ -147,7 +148,9 @@ def fit(p, f):
     while True:
         L = max(p.get("L", LMIN), 4 - (ys.min() - cy) * s)                 # Körper beginnt frühestens 4 Einheiten unter dem Ansatz
         bottom = ANCHOR[1] + L + (ys.max() - cy) * s
-        if bottom <= BOTTOM + 1e-6 and (xs.max() - xs.min()) * s <= IN1 - IN0 + 1e-6: return s, L
+        if bottom <= BOTTOM + 1e-6 and (xs.max() - xs.min()) * s <= IN1 - IN0 + 1e-6:
+            if p.get("unten"): L = BOTTOM - ANCHOR[1] - (ys.max() - cy) * s       # Körper hängt bündig am unteren Rand, der Gurt trägt die Höhe
+            return s, L
         s *= 0.99
 
 
@@ -188,7 +191,7 @@ def pose_canvas(name, body=True):
     W, H = int((X1 - X0) * RES), int((Y1 - Y0) * RES)
     if name not in _POSEN_CACHE:
         X, Y = np.meshgrid(X0 + (np.arange(W) + 0.5) / RES, Y0 + (np.arange(H) + 0.5) / RES)
-        d, grips, Z = pose_skaliert(name, X, Y)
+        d, grips, Z = pose_skaliert(name, X, Y, unten=BOTTOM, q=POSE_MASSSTAB)
         print('   Pose', name, 'Vergrößerung', round(Z, 3))
         _POSEN_CACHE[name] = (((d < 0) * 255).astype(np.uint8), grips)
     mask, grips = _POSEN_CACHE[name]

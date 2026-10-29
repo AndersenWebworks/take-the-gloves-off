@@ -38,7 +38,7 @@ html[lang="de"] .lang [data-set="de"], html[lang="en"] .lang [data-set="en"] { o
 .hero .top, .hero .bottom { position: absolute; left: 36px; right: 36px; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .hero .top { top: 22px; }
 .hero .bottom { bottom: 30px; }
-.hero .mark { height: min(46vh, 400px); width: auto; flex: none; }
+.hero .mark { height: min(46vh, 400px); width: auto; flex: none; overflow: visible; }
 .hero .wordmark { height: min(46vh, 400px); width: auto; overflow: visible; }
 html.intro .hero .in, html.intro .hero .top, html.intro .hero .bottom, html.intro .hero .cue { visibility: hidden; }
 .hero .fxwrap { opacity: 0; transition: opacity 1.5s cubic-bezier(.4,0,.2,1); transform-origin: 50% 45%; will-change: transform; filter: brightness(calc(1 - var(--dim, 0) * .75)); }

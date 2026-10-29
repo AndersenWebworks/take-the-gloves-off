@@ -218,14 +218,15 @@ def pose_a(X, Y):
 POSEN = {"a": pose_a, "b": pose_b, "c": pose_c}
 
 
-def pose_skaliert(name, X, Y, unten=89.5, links=31.8, rechts=68.2, zentrum=(50.0, 19.0)):
-    """Pose um den Gurtpunkt vergrößern, bis sie unten und seitlich den Zwischenraum füllt (nichts berührt einen Stab)"""
+def pose_skaliert(name, X, Y, unten=89.0, links=31.8, rechts=68.2, zentrum=(50.0, 19.0), q=1.0):
+    """Pose um den Gurtpunkt vergrößern, bis sie den Zwischenraum füllt (nichts berührt einen Stab), mit Faktor q verkleinern
+    und dann senkrecht so verschieben, dass der tiefste Punkt bei `unten` liegt. Die Gurte werden dadurch länger."""
     f = POSEN[name]
     xs, ys = np.meshgrid(np.arange(links - 12, rechts + 12, 0.25), np.arange(8, 120, 0.25))
     d0, _ = f(xs, ys)
     m = d0 < 0
-    Z = min((unten - zentrum[1]) / (ys[m].max() - zentrum[1]),
-            (zentrum[0] - links) / (zentrum[0] - xs[m].min()), (rechts - zentrum[0]) / (xs[m].max() - zentrum[0]))
     cx, cy = zentrum
-    d, grips = f(cx + (X - cx) / Z, cy + (Y - cy) / Z)
-    return d * Z, [(cx + (g[0] - cx) * Z, cy + (g[1] - cy) * Z) for g in grips], Z
+    Z = min((unten - cy) / (ys[m].max() - cy), (cx - links) / (cx - xs[m].min()), (rechts - cx) / (xs[m].max() - cx)) * q
+    dy = unten - (cy + (ys[m].max() - cy) * Z)
+    d, grips = f(cx + (X - cx) / Z, cy + (Y - dy - cy) / Z)
+    return d * Z, [(cx + (g[0] - cx) * Z, cy + (g[1] - cy) * Z + dy) for g in grips], Z
