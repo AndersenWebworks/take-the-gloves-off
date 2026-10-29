@@ -2,7 +2,7 @@
  * Ein Takt für alles: Dunkel, die Stäbe fallen, das Licht kommt, der Stab bricht
  * (und mit ihm das Bild), dann der Titel Zeile für Zeile, das Ausrufezeichen,
  * die Unterzeile unter einem Balken hervor, zuletzt die Bedienelemente.
- * Danach ruht das Zeichen gebogen und verwandelt sich in Abständen in die Tänzerfigur.
+ * Danach ruht das Zeichen gebogen und verwandelt sich in Abständen in hängende Luftartistik-Figuren.
  */
 (function () {
   'use strict';
@@ -86,36 +86,69 @@
     [3.7, 0.12, 0.45, 'wv'],
     [4.13, 0.1, 0.3, 'w']
   ];
-  // Kreislauf des Zeichens: ruhen, Tänzerfigur, ruhen, aufrichten, brechen
-  var L = { hold: 0.3, morph: 0.5, fade: 0.3, figHold: [0.55, 0.55, 0.8], back: 0.5, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
-  var figStart = L.hold;
-  var figEnd = figStart + L.morph + (L.figHold.length - 1) * L.fade + L.figHold.reduce(function (a, b) { return a + b; }, 0);
-  var backEnd = figEnd + L.back;
-  var upStart = backEnd + L.hold2, upEnd = upStart + L.up;
-  var snapStart = upEnd + L.rest, LOOP = snapStart + L.snap;
-
+  // ---------- Partitur des Kreislaufs ----------
+  // Alles, was im Kreislauf geschieht, steht hier als Daten; der Ablauf wird daraus abgespielt. Zeiten in Schlägen (BEAT = 1 Viertel).
+  // Bogen: Auftakt -> Steigerung (accelerando) -> Ausbruch (hektisch) -> Höhepunkt (langes Rot, Ausglimmen) -> Ruhe -> neu.
+  // Figuren stehen absolut still (kein Morph, keine Drehung/Skalierung/Versatz); jede Figur blitzt: schlagartig warmes Weiß mit
+  // kleinem Schein -> Rot -> Ausglimmen. Sicherheit (WCAG 2.3.1): Abstand zweier Blitzstarts mindestens MIN_ABSTAND (< 3 Blitze je Sekunde).
+  var BPM = 128;
+  var BEAT = 60 / BPM;                                  // s je Schlag (0,469 s)
+  var MIN_ABSTAND = 0.34;                               // s, kleinster erlaubter Abstand zweier Blitzstarts
+  function b(n) { return n * BEAT; }
+  //  was: 'stab' (Stab, gebogen und rot) oder 'pose' (pose 0..4 = Figur 1..5)
+  //  dunkel: Dunkelphase davor; halt: Dauer der Sichtbarkeit nach der Dunkelphase (inkl. Aus-/Einblenden)
+  //  Pose: weiss/rot = Sekunden warmes Weiß / Weiß->Rot, glow = Dauer des Scheins (s), schein = Stärke/Helligkeit des Scheins (1 = normal), radius = Weichzeichner-Faktor des Scheins (Standard = schein; kleiner = enger am Umriss), fade = Ausglimmen am Ende (s)
+  //  Stab: ein = sanftes Einblenden (s), aus = hartes Ausfaden am Ende (s), atmen = leichtes Atmen der Biegung
+  //  stoerung: [Beginn nach Start der Sichtbarkeit (s), Dauer (s), Stärke, Ziel 'm' Zeichen / 'v' Videobild / 'w' Schriftzug]
+  var SCORE = [
+    { was: 'stab', halt: b(0.75), aus: 0.06 },                                                                                  // Auftakt: Stab kurz, hartes Aus
+    // Steigerung: Haltezeiten 0,59 -> 0,35 s, Dunkelphasen 0,12 -> 0,06 s
+    { was: 'pose', pose: 0, dunkel: b(0.25),  halt: b(1.25), weiss: 0.05, rot: 0.12, glow: 0.06, schein: 1, fade: 0.24 },
+    { was: 'pose', pose: 1, dunkel: b(0.20),  halt: b(1.00), weiss: 0.05, rot: 0.12, glow: 0.06, schein: 1, fade: 0.20 },
+    { was: 'pose', pose: 2, dunkel: b(0.18),  halt: b(0.90), weiss: 0.05, rot: 0.11, glow: 0.06, schein: 1, fade: 0.18 },
+    { was: 'pose', pose: 3, dunkel: b(0.15),  halt: b(0.80), weiss: 0.05, rot: 0.10, glow: 0.06, schein: 1, fade: 0.16 },
+    { was: 'pose', pose: 4, dunkel: b(0.125), halt: b(0.75), weiss: 0.05, rot: 0.09, glow: 0.07, schein: 1.2, fade: 0.14 },
+    // Ausbruch: vier Blitze im Mindestabstand (Figuren 3, 1, 4, 2), stärkerer Schein; einmalige Signalstörung auf dem dritten Blitz
+    { was: 'pose', pose: 2, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.5, fade: 0.10 },
+    { was: 'pose', pose: 0, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.5, fade: 0.10 },
+    { was: 'pose', pose: 3, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10, stoerung: [0.0, 0.16, 0.7, 'mv'] },
+    { was: 'pose', pose: 1, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10 },
+    // Höhepunkt: Figur 4 (zusammengekrümmt in der Schlaufe), stärkster Blitz, steht lange rot, glimmt dann langsam aus
+    { was: 'pose', pose: 3, dunkel: b(0.25),  halt: b(3.75),  weiss: 0.10, rot: 0.22, glow: 0.18, schein: 3, radius: 1.3, fade: 0.60 },
+    // Ruhe (2 Takte statt 1): Dunkel, dann erscheint der Stab sanft und atmet; auf Schlag 5 der Sichtbarkeit ein kurzes, leises Nachbeben (Störung nur am Zeichen, kein Blitz)
+    { was: 'stab', dunkel: b(1.0), halt: b(8.0), ein: 0.7, atmen: true, stoerung: [b(5.0), 0.14, 0.3, 'm'] }
+  ];
+  var FIGUREN = 5;                                      // Anzahl der Figuren (morph.js: p0 bis p4)
+  var TL = [], LOOP = 0, GLSCORE = [], BLITZE = [];     // Zeitplan, Zykluslänge, Störungen, Blitzstarts (aus SCORE errechnet)
+  (function () {
+    var t = 0;
+    SCORE.forEach(function (e, i) {
+      var ev = { e: e, i: i, t0: t, ts: t + (e.dunkel || 0), te: t + (e.dunkel || 0) + e.halt };
+      TL.push(ev); t = ev.te;
+      if (e.was === 'pose') BLITZE.push({ t: ev.ts, i: i, pose: e.pose });
+      if (e.stoerung) GLSCORE.push([ev.ts + e.stoerung[0], e.stoerung[1], e.stoerung[2], e.stoerung[3]]);
+    });
+    LOOP = t;
+  })();
   function loopState(u) {
-    var bend = 1, col = 1, op = [0, 0, 0];
-    var breath = 1 + 0.035 * Math.sin(u * Math.PI * 2 / 4.6);
-    if (u < figStart) bend = breath;
-    else if (u < backEnd) {
-      // Daumenkino mit Überblendung
-      var a = figStart;
-      for (var i = 0; i < L.figHold.length; i++) {
-        var inD = i ? L.fade : L.morph;                // der Stab verformt sich zur ersten Figur
-        var inA = a, inB = a + inD, outA = inB + L.figHold[i];
-        var outD = i < L.figHold.length - 1 ? L.fade : L.back;
-        if (u >= inA && u < inB) op[i] = (u - inA) / inD;
-        else if (u >= inB && u < outA) op[i] = 1;
-        else if (u >= outA && u < outA + outD) op[i] = 1 - (u - outA) / outD;
-        a = outA;
+    var r = { bend: 1, hold: -1, tt: 0, dur: 1, fx: null, dark: false, stab: 1, env: 0 };
+    for (var i = 0; i < TL.length; i++) {
+      var v = TL[i], e = v.e;
+      if (u < v.t0 || u >= v.te) continue;
+      if (u < v.ts) { r.dark = true; break; }
+      var d = u - v.ts;
+      if (e.was === 'pose') { r.hold = e.pose; r.tt = d; r.dur = e.halt; r.fx = e; }
+      else {
+        r.stab = e.ein ? ease3(seg(d, 0, e.ein)) : 1 - (e.aus ? seg(d, e.halt - e.aus, e.aus) : 0);
+        // Atmen nur in der Ruhe, an Anfang und Ende auf null gezogen (kein Sprung)
+        if (e.atmen) r.env = seg(d, 0.4, 1.0) * (1 - seg(d, e.halt - 0.8, 0.8));
+        r.bend = 1 + 0.035 * r.env * Math.sin(u * Math.PI * 2 / 4.6);
       }
-    } else if (u < upStart) bend = breath;
-    else if (u < upEnd) { var v = inOut(seg(u, upStart, L.up)); bend = 1 - v; col = 1 - clamp(v * 1.4); }
-    else if (u < snapStart) { bend = 0; col = 0; }
-    else { var w = seg(u, snapStart, L.snap); bend = backOut(w); col = clamp(w * 1.8); }
-    return { bend: bend, col: col, op: op };
+      break;
+    }
+    return r;
   }
+  function ease3(u) { return u * u * (3 - 2 * u); }
 
   var cur = { bend: 0 };
   function drive() { return cur.bend * 0.95; }
@@ -173,16 +206,13 @@
     }
     return [a, seed];
   }
-  // im Kreislauf: der Stab bricht mit einem Ruck, und einmal pro Runde zuckt der Schriftzug
-  function loopGL(cyc) {
-    var tw = rnd(cyc + 3) < 0.5 ? 1.2 + rnd(cyc + 9) * 1.6 : figEnd + 1.0 + rnd(cyc + 9) * 1.8;
-    return [[snapStart + 0.05, 0.2, 0.6, 'mv'], [tw, 0.12, 0.35, 'w']];
-  }
+  // im Kreislauf: genau die Störungen der Partitur (einmaliger Akzent im Ausbruch)
+  function loopGL() { return GLSCORE; }
   var glV = 0;
 
   // ---------- Endzustand ohne Bewegung ----------
   if (reduce) {
-    if (Z) Z.set(1, 1, []);
+    if (Z) Z.set(1, 1);
     root.classList.remove('intro');
     hero.classList.add('lit', 'ui-on');
     if (window.TTGOfx && fxwrap && video) try { TTGOfx.biegen(fxwrap, video, { drive: function () { return 0.6; } }); } catch (e) {}
@@ -228,16 +258,20 @@
     var st;
     if (t < T.loop) {
       var b = inOut(seg(t, T.bend, T.bendDur));
-      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), op: [] };
+      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), hold: -1, stab: 1 };
     } else {
       st = loopState((t - T.loop) % LOOP);
     }
     cur.bend = st.bend;
-    if (Z) Z.set(st.bend, st.col, st.op);
+    if (Z) {
+      if (st.dark) Z.dunkel();
+      else if (st.hold >= 0) Z.halte(st.hold, st.tt, st.dur, st.fx);
+      else Z.set(st.bend, st.col == null ? 1 : st.col, st.stab);
+    }
 
     // Signalstörungen
     var gt = t, gl = GL;
-    if (t >= T.loop) { gt = (t - T.loop) % LOOP; gl = loopGL(Math.floor((t - T.loop) / LOOP)); }
+    if (t >= T.loop) { gt = (t - T.loop) % LOOP; gl = loopGL(); }
     var gm = glAt(gt, gl, 'm'), gw = glAt(gt, gl, 'w');
     stM(gm[0], gm[1]); stW(gw[0], gw[1]);
     glV = glAt(gt, gl, 'v')[0];
@@ -294,7 +328,7 @@
   // Druck: alles im Endzustand
   window.addEventListener('beforeprint', function () {
     stM(0); stW(0);
-    if (Z) Z.set(1, 1, []);
+    if (Z) Z.set(1, 1);
     if (mark) mark.style.transform = '';
     if (W) {
       W.lines.forEach(function (ln) { ln.el.setAttribute('transform', ''); });
