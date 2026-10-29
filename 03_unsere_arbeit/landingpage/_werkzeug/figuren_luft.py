@@ -62,8 +62,10 @@ FIGUREN = [
     dict(ref="ref5.jpg", zonen=[(150, 0, 760, 322, "kill", 0), (150, 345, 306, 425, "kill", 0), (190, 420, 306, 740, "kill", 0),
                                (468, 322, 760, 612, "kill", 0), (0, 1000, 1049, 1573, "kill", 0)],
          straps=[(318, 356), (462, 336)], extra=[((462, 336), (660, 638))], plus=[("ell", 372, 497, 46, 52), ("line", (376, 540), (385, 610), 56)], L=14, unten=True, close=0.007, open=0.006, blur=0.008),
-    dict(pose="c"),     # einarmiges Hängen, Rumpf verdreht, ein Knie angezogen (frei entworfen)
-    dict(pose="a"),     # Hängen an beiden Händen, Kopf sinkt zwischen die Arme
+    dict(pose2="E"),    # einarmiges Hängen, Rumpf verdreht, ein Knie angezogen (frei entworfen, figuren_posen2.py)
+    dict(pose2="K"),    # kopfüber, ein Fuß im Gurt eingehakt, das andere Bein im Vierer, Arme hängen
+    dict(pose2="G"),    # zusammengekrümmt in der Gurtschlaufe, Stirn auf den Knien
+    dict(pose2="F"),    # an beiden Fäusten hängend, Kopf sinkt zwischen die Arme
 ]
 
 
@@ -449,7 +451,10 @@ def paar_ueber_gurt(ca, cb, ga, gb):
 if __name__ == "__main__":
     out, canvases, strapcv, specs = [], [], [], []
     for p in FIGUREN:
-        if p.get("pose"):
+        if p.get("pose2"):
+            import figuren_posen2
+            canvas = figuren_posen2.canvas(p["pose2"], X0, X1, Y0, Y1, RES); canvases.append(canvas); strapcv.append(figuren_posen2.canvas(p["pose2"], X0, X1, Y0, Y1, RES, body=False)); specs.append(None); s, L = 1.0, 0
+        elif p.get("pose"):
             canvas = pose_canvas(p["pose"]); canvases.append(canvas); strapcv.append(pose_canvas(p["pose"], body=False)); specs.append(pose_canvas(p["pose"], spec=True)); s, L = 1.0, 0
         else:
             f = person(p)
@@ -457,7 +462,7 @@ if __name__ == "__main__":
             canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False)); specs.append(build(p, f, s, L, spec=True))
         d, bb = vectorise(canvas)
         out.append(d)
-        print(p.get("ref", p.get("pose")), "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
+        print(p.get("ref", p.get("pose", p.get("pose2"))), "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
         assert bb[0] >= 31.0 and bb[2] <= 69.0 and bb[3] <= Y1 and bb[1] >= Y0 - .3, "ragt über den Zwischenraum"
     json.dump(out, open(os.path.join(TMP, "figuren.json"), "w"))
     with open(os.path.join(LP, "assets", "js", "figuren.js"), "w", encoding="utf-8") as fh:
@@ -465,12 +470,14 @@ if __name__ == "__main__":
                  "Gurte neu gesetzt (erzeugt mit _werkzeug/figuren_luft.py) */\nwindow.TTGO_FIGUREN = " + json.dumps(out) + ";\n")
     mj = os.path.join(LP, "assets", "js", "morph.js")
     import morph_dicht
-    seqs = morph_dicht.alles(canvases, strapcv, specs)
-    for k in ("p01", "p12"): seqs[k] = seqs[k][-1:]            # v9: harter Flash-Wechsel, nur die Zielfigur wird gebraucht
-    data = {"kt": morph_dicht.KT, "q": 50, "seq": {k: morph_dicht.kodieren(v) for k, v in seqs.items()}}
+    # v10: kein Morph mehr. Je Figur genau ein Bild (dichter, geglätteter Umriss); Wechsel zwischen den Figuren per Flash im Browser.
+    seqs = {}
+    for i, c in enumerate(canvases):
+        fr = morph_dicht.folge_zu_formen([morph_dicht.sd(morph_dicht.pad(c))])
+        seqs["p%d" % i] = morph_dicht.kodieren(fr)
+    data = {"kt": 1, "q": 50, "seq": seqs}
     with open(mj, "w", encoding="utf-8") as f:
-        f.write("/* Stützformen für die Verwandlung der Bildmarke: je Folge KT Bilder, Umrisse mit gleicher Punktzahl und -reihenfolge "
-                "(erzeugt mit _werkzeug/figuren_luft.py und morph_dicht.py) */\n")
+        f.write("/* Umrisse der fünf Figuren für die Bildmarke, je Figur ein Bild (erzeugt mit _werkzeug/figuren_luft.py und morph_dicht.py) */\n")
         f.write("window.TTGO_MORPH = " + json.dumps(data, separators=(",", ":")) + ";\n")
     cells = "".join(f'<g transform="translate({i*70} 0)"><rect x="21.5" y="8" width="9" height="84" fill="#efebe3"/>'
                     f'<rect x="69.5" y="8" width="9" height="84" fill="#efebe3"/><path d="{d}" fill="#d22b1f" fill-rule="evenodd"/></g>'

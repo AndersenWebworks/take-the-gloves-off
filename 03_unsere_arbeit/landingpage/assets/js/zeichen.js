@@ -1,12 +1,10 @@
 /* Take the gloves off! – animierte Bildmarke
- * Der mittlere Stab biegt sich, wird rot und verwandelt sich in hängende Luftartistik-Figuren und zurück.
- * Die Verwandlungen Stab <-> Figur laufen über Stützformen (morph.js) mit gleicher Punktzahl und Punktreihenfolge; pro Bild wird
- * zwischen zwei Nachbarn linear interpoliert (Abspielen mit der Bildrate des Geräts, kein Umschalten in Stufen).
+ * Der mittlere Stab biegt sich, wird rot und wechselt per Flash (kein Morph) zwischen hängenden Luftartistik-Figuren.
+ * Die Umrisse der fünf Figuren stehen in morph.js (je Figur ein Bild p0..p4).
  * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
- * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Morph-Pfad auf).
- * Programmierschnittstelle: set(bend, col) Stab zeichnen; morph(folge, u, rueckwaerts, col) Verwandlung (u 0..1, schon
- * mit Easing); halte(figur, sway, glow) Figur 0..2 stehend (sway: Neigung in Grad um den Gurtansatz, glow: Nachglühen 0..1);
- * dunkel() alles aus. Zwischen den Figuren gibt es keine Zwischenformen: p01 und p12 in morph.js enthalten nur die Zielfigur.
+ * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Figuren-Pfad auf).
+ * Programmierschnittstelle: set(bend, col) Stab zeichnen; halte(figur, sway, glow) Figur 0..4 stehend (sway: Neigung in Grad
+ * um den Gurtansatz, glow: Nachglühen 0..1); dunkel() alles aus.
  */
 (function () {
   'use strict';
@@ -38,13 +36,13 @@
     var g = svg.querySelector('.z-figuren');
     if (g && g !== svg.firstElementChild) svg.insertBefore(g, svg.firstElementChild);   // Figuren hinter den äußeren Stäben
     var ink = hex(opts.ink || '#efebe3'), red = hex(opts.red || '#d22b1f');
-    var M = window.TTGO_MORPH, mp = null, S = null, BR = null, BRUCH = 2.0;
+    var M = window.TTGO_MORPH, mp = null, S = null;
     if (g && M) {
       mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       mp.setAttribute('class', 'z-morph'); mp.setAttribute('fill-rule', 'evenodd'); mp.style.opacity = 0;
       g.appendChild(mp);
       // Stützformen entpacken: je Bild Liste von Umrissen { id, p: Float32Array(x0,y0,x1,y1,...) }
-      S = {}; BR = {};
+      S = {};
       Object.keys(M.seq).forEach(function (name) {
         S[name] = M.seq[name].map(function (row) {
           var i = 1, fr = [];
@@ -56,45 +54,46 @@
           }
           return fr;
         });
-        // Nachbarbilder, deren Punkte sich um mehr als BRUCH Einheiten gegeneinander verschieben (Umrissliste wechselt,
-        // Punktreihenfolge rutscht an einer Verengung), werden nicht linear gemischt, sondern in der Mitte getauscht;
-        // bei dichter Bildfolge ist der Tausch unsichtbar, die Mischung dagegen würde die Form verzerren (Zucken).
-        BR[name] = S[name].slice(0, -1).map(function (a, i) {
-          var b = S[name][i + 1];
-          if (a.length !== b.length) return true;
-          for (var c = 0; c < a.length; c++) {
-            if (a[c].id !== b[c].id || a[c].p.length !== b[c].p.length) return true;
-            var p = a[c].p, q = b[c].p;
-            for (var k = 0; k < p.length; k += 2) { var dx = p[k] - q[k], dy = p[k + 1] - q[k + 1]; if (dx * dx + dy * dy > BRUCH * BRUCH) return true; }
-          }
-          return false;
-        });
       });
     }
-    var HOLD = ['stab0', 'p01', 'p12'];                                 // Figur i = letztes Bild dieser Folge (p01, p12: nur dieses eine Bild)
+    var HOLD = ['p0', 'p1', 'p2', 'p3', 'p4'];                         // Figur i = einziges Bild der Folge p<i>
     var HOT = [240, 62, 46];                                           // heißeres Rot für das Nachglühen
 
-    function pathOf(a, b, f, brk) {
-      var d = '', ok = f > 0 && b && !brk && a.length === b.length;
-      for (var c = 0; ok && c < a.length; c++) if (a[c].id !== b[c].id || a[c].p.length !== b[c].p.length) ok = false;
-      var src = ok ? null : (f >= 0.5 && b ? b : a);
-      var n = (ok ? a : src).length;
-      for (var c2 = 0; c2 < n; c2++) {
-        var p = (ok ? a : src)[c2].p, q = ok ? b[c2].p : null, m = p.length;
+    function pathOf(a) {
+      var d = '';
+      for (var c = 0; c < a.length; c++) {
+        var p = a[c].p;
         d += 'M';
-        for (var k = 0; k < m; k += 2) {
-          var x = q ? p[k] + (q[k] - p[k]) * f : p[k], y = q ? p[k + 1] + (q[k + 1] - p[k + 1]) * f : p[k + 1];
-          d += (k ? 'L' : '') + x.toFixed(2) + ' ' + y.toFixed(2);
-        }
+        for (var k = 0; k < p.length; k += 2) d += (k ? 'L' : '') + p[k].toFixed(2) + ' ' + p[k + 1].toFixed(2);
         d += 'Z';
       }
       return d;
     }
-    function frameD(name, x) {                          // x = Bildnummer (gebrochen)
-      var fr = S[name], last = fr.length - 1;
-      x = Math.max(0, Math.min(last, x));
-      var i = Math.min(last - 1, Math.floor(x));
-      return pathOf(fr[i], fr[i + 1], x - i, BR[name][i]);
+    function showMorph(d, col, sway) {
+      stab.style.opacity = 0;
+      mp.setAttribute('d', d);
+      mp.setAttribute('fill', mix(ink, red, col));
+      if (sway) mp.setAttribute('transform', 'rotate(' + sway.toFixed(3) + ' 50 8)'); else mp.removeAttribute('transform');
+      mp.style.opacity = 1; mp.style.filter = '';
+    }
+    function set(bend, col) {                           // der gebogene Stab (gerade, gebogen, weiß, rot)
+      stab.setAttribute('d', bentBar(BAR.bend * bend));
+      stab.setAttribute('fill', mix(ink, red, col));
+      stab.style.opacity = 1;
+      if (mp) mp.style.opacity = 0;
+    }
+    // Figur i = einziges Bild der Folge p<i>
+    var HOT = [240, 62, 46];                                           // heißeres Rot für das Nachglühen
+
+    function pathOf(a) {
+      var d = '';
+      for (var c = 0; c < a.length; c++) {
+        var p = a[c].p;
+        d += 'M';
+        for (var k = 0; k < p.length; k += 2) d += (k ? 'L' : '') + p[k].toFixed(2) + ' ' + p[k + 1].toFixed(2);
+        d += 'Z';
+      }
+      return d;
     }
     function showMorph(d, col, sway) {
       stab.style.opacity = 0;
@@ -114,12 +113,11 @@
       var last = S[name].length - 1;
       showMorph(frameD(name, (rev ? 1 - u : u) * last), col == null ? 1 : col, 0);
     }
-    // Figur i (0..2) steht vollständig da. glow 0..1: Nachglühen nach dem Flash (wärmeres Rot plus roter Lichthof,
+    // Figur i (0..4) steht vollständig da. glow 0..1: Nachglühen nach dem Flash (wärmeres Rot plus roter Lichthof,
     // nie Weiß); 0 = Normalzustand ohne Filter.
     function halte(i, sway, glow) {
       if (!mp) return;
-      var fr = S[HOLD[i]], f = fr[fr.length - 1];
-      showMorph(pathOf(f, null, 0, false), 1, sway);
+      showMorph(pathOf(S[HOLD[i]][0]), 1, sway);
       var g = glow > 0 ? Math.min(1, glow) : 0;
       if (g) {
         mp.setAttribute('fill', mix(red, HOT, g * 0.8));
@@ -130,6 +128,6 @@
       if (!mp) return;
       stab.style.opacity = 0; mp.style.opacity = 0; mp.style.filter = '';
     }
-    return { set: set, morph: morph, halte: halte, dunkel: dunkel, figuren: 3 };
+    return { set: set, halte: halte, dunkel: dunkel, figuren: 5 };
   };
 })();
