@@ -87,28 +87,33 @@
     [4.13, 0.1, 0.3, 'w']
   ];
   // Kreislauf des Zeichens: ruhen, Figuren, ruhen, aufrichten, brechen
-  // Takt der Verwandlung: kein Morph. Stab -> Figur 1 -> ... -> Figur 5 -> Stab wechseln alle hart wie bei einem
-  // Kamerablitz im Verhör: das Bild geht aus (DUNKEL), das nächste steht sofort vollständig da und glüht rot nach
-  // (GLUEHEN, klingt auf den Normalzustand ab). Je Wechsel genau ein Lichtwechsel, kein Weiß, kein Flackern.
-  var HALTEZEIT = 1.2;      // s, Figur steht ruhig (ohne Dunkelphase), je Figur
-  var DUNKEL = 0.08;        // s, Bild aus, vor dem Auftauchen des nächsten
-  var GLUEHEN = 0.25;       // s, Nachglühen der neuen Figur bis zum Normalzustand
-  var FIGUREN = 5;          // Anzahl der Figuren (morph.js: p0 bis p4)
-  var L = { hold: 0.4, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6, sway: 0.45 };
+  // Takt der Verwandlung: kein Morph. Stab -> Figur 1 -> ... -> Figur 5 -> Stab wechseln hart wie ein Kamerablitz im
+  // Verhör: das Bild geht aus (DUNKEL[i]), die nächste Figur steht sofort vollständig und absolut still da.
+  // Einziger Lichtakzent: IMPULS Sekunden lang ein etwas heißeres Rot (reine Füllfarbe, kein Filter, keine Formänderung),
+  // dann sofort normal. Je Wechsel genau ein Lichtwechsel, kein Weiß, kein Flackern.
+  // Der Takt beschleunigt sich: Haltezeiten und Dunkelphasen werden je Figur kürzer. Hier einstellen:
+  var STAB_ANFANG = 1.0;                                // s, Stab steht zu Beginn des Zyklus ruhig
+  var HALTEZEITEN = [0.90, 0.70, 0.55, 0.45, 0.38];     // s, Figur 1 bis 5 steht still (nach der Dunkelphase)
+  var DUNKELZEITEN = [0.10, 0.09, 0.08, 0.07, 0.06];    // s, Bild aus, vor dem Auftauchen der Figur 1 bis 5
+  var ZAESUR = 0.60;                                    // s, Dunkelpause nach der letzten Figur, bevor der Stab zurückkehrt
+  var STAB_ENDE = 2.0;                                  // s, Stab steht danach wieder ruhig, bevor der Zyklus neu beginnt
+  var IMPULS = 0.05;                                    // s, heißeres Rot nach jedem Wechsel (0 = ganz aus)
+  var FIGUREN = HALTEZEITEN.length;                     // Anzahl der Figuren (morph.js: p0 bis p4)
+  var L = { hold: STAB_ANFANG, hold2: STAB_ENDE, up: 0.7, rest: 0.9, snap: 0.6 };
   var figStart = L.hold;
-  var SEG = [];                                             // Abschnitte der Figurenphase: Übergang, Haltezeit, ...
+  var SEG = [];                                             // Abschnitte der Figurenphase: Dunkel + Haltezeit je Figur, Zäsur
   (function () {
     var t = figStart;
-    function add(kind, dur, a, b, dark) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, b: b, dark: dark || 0 }); t += dur; }
-    for (var i = 0; i < FIGUREN; i++) add('hold', DUNKEL + HALTEZEIT, i, false, DUNKEL);   // Flash Stab/Figur i -> Figur i+1
-    add('dark', DUNKEL);                                                                    // Flash Figur 5 -> Stab
+    function add(kind, dur, a, dark) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, dark: dark || 0 }); t += dur; }
+    for (var i = 0; i < FIGUREN; i++) add('hold', DUNKELZEITEN[i] + HALTEZEITEN[i], i, DUNKELZEITEN[i]);
+    add('dark', ZAESUR);                                                                    // Flash Figur 5 -> Stab
     SEG.end = t;
   })();
-  var backEnd = SEG.end, figEnd = backEnd - DUNKEL;
+  var backEnd = SEG.end, figEnd = backEnd - ZAESUR;
   var upStart = backEnd + L.hold2, upEnd = upStart + L.up;
   var snapStart = upEnd + L.rest, LOOP = snapStart + L.snap;
   function loopState(u) {
-    var bend = 1, col = 1, hold = -1, sway = 0, glow = 0, dark = false;
+    var bend = 1, col = 1, hold = -1, glow = 0, dark = false;
     // Atmen des gebogenen Stabs: nur in der Ruhe, an den Übergängen zur Figur und zum Aufrichten auf null gezogen (kein Sprung)
     var env = Math.min(1 - seg(u, 0, figStart), 1) + (u >= figStart ? Math.min(seg(u, backEnd, 1.0), 1 - seg(u, upStart - 1.0, 1.0)) : 0);
     var breath = 1 + 0.035 * env * Math.sin(u * Math.PI * 2 / 4.6);
@@ -117,16 +122,12 @@
       for (var i = 0; i < SEG.length; i++) {
         var s = SEG[i];
         if (u < s.t0 || u >= s.t1) continue;
-        var x = (u - s.t0) / (s.t1 - s.t0);
         if (s.kind === 'dark') dark = true;
-        else {   // Haltezeit; am Anfang Dunkelphase und Nachglühen eines harten Wechsels
+        else {   // Haltezeit; am Anfang Dunkelphase und kurzer Impuls eines harten Wechsels
           var tt = u - s.t0;
           if (tt < s.dark) dark = true;
-          else if (s.dark) { var gx = (tt - s.dark) / GLUEHEN; glow = gx < 1 ? Math.pow(1 - gx, 2) : 0; }
+          else glow = tt < s.dark + IMPULS ? 1 : 0;
           hold = s.a;
-          // leichtes Nachpendeln um den Gurtansatz, nach dem Wechsel auf null
-          var x2 = (tt - s.dark) / (s.t1 - s.t0 - s.dark), sn = Math.sin(Math.PI * clamp(x2));
-          sway = L.sway * (s.a % 2 ? -1 : 1) * sn * sn * Math.sin(2 * Math.PI * clamp(x2));
         }
         break;
       }
@@ -134,7 +135,7 @@
     else if (u < upEnd) { var v = inOut(seg(u, upStart, L.up)); bend = 1 - v; col = 1 - clamp(v * 1.4); }
     else if (u < snapStart) { bend = 0; col = 0; }
     else { var w = seg(u, snapStart, L.snap); bend = backOut(w); col = clamp(w * 1.8); }
-    return { bend: bend, col: col, hold: hold, sway: sway, glow: glow, dark: dark };
+    return { bend: bend, col: col, hold: hold, glow: glow, dark: dark };
   }
 
   var cur = { bend: 0 };
@@ -255,7 +256,7 @@
     cur.bend = st.bend;
     if (Z) {
       if (st.dark) Z.dunkel();
-      else if (st.hold >= 0) Z.halte(st.hold, st.sway, st.glow);
+      else if (st.hold >= 0) Z.halte(st.hold, 0, st.glow);
       else Z.set(st.bend, st.col);
     }
 

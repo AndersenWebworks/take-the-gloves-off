@@ -3,8 +3,8 @@
  * Die Umrisse der fünf Figuren stehen in morph.js (je Figur ein Bild p0..p4).
  * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
  * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Figuren-Pfad auf).
- * Programmierschnittstelle: set(bend, col) Stab zeichnen; halte(figur, sway, glow) Figur 0..4 stehend (sway: Neigung in Grad
- * um den Gurtansatz, glow: Nachglühen 0..1); dunkel() alles aus.
+ * Programmierschnittstelle: set(bend, col) Stab zeichnen; halte(figur, sway, glow) Figur 0..4 stehend (sway wird ignoriert, die Figur steht still;
+ * glow > 0: einziger kurzer Impuls in heißerem Rot, nur Füllfarbe); dunkel() alles aus.
  */
 (function () {
   'use strict';
@@ -113,16 +113,12 @@
       var last = S[name].length - 1;
       showMorph(frameD(name, (rev ? 1 - u : u) * last), col == null ? 1 : col, 0);
     }
-    // Figur i (0..4) steht vollständig da. glow 0..1: Nachglühen nach dem Flash (wärmeres Rot plus roter Lichthof,
-    // nie Weiß); 0 = Normalzustand ohne Filter.
+    // Figur i (0..4) steht vollständig da. glow > 0: kurzer Impuls nach dem Flash (heißeres Rot, nur Füllfarbe,
+    // nie Weiß, kein Filter); 0 = Normalzustand.
     function halte(i, sway, glow) {
       if (!mp) return;
-      showMorph(pathOf(S[HOLD[i]][0]), 1, sway);
-      var g = glow > 0 ? Math.min(1, glow) : 0;
-      if (g) {
-        mp.setAttribute('fill', mix(red, HOT, g * 0.8));
-        mp.style.filter = 'drop-shadow(0 0 ' + (0.6 + 2.2 * g).toFixed(2) + 'px rgba(255,40,25,' + (0.7 * g).toFixed(3) + '))';
-      } else mp.style.filter = '';
+      showMorph(pathOf(S[HOLD[i]][0]), 1, 0);          // nie Drehung, nie Filter: die Figur steht absolut still
+      if (glow > 0) mp.setAttribute('fill', mix(red, HOT, 0.8));   // kurzer harter Impuls, nur Füllfarbe
     }
     function dunkel() {                                 // Figur aus (Dunkelphase des Flash): weder Stab noch Figur
       if (!mp) return;
