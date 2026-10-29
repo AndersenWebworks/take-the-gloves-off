@@ -157,7 +157,7 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .lightbox button:hover { opacity: 1; color: var(--red); }
 .lb-x { top: 14px; right: 14px; } .lb-p { left: 10px; top: 50%; transform: translateY(-50%); } .lb-n { right: 10px; top: 50%; transform: translateY(-50%); }
 
-/* Zirkus: klarer Clip neben dem Text */
+/* Bühne: klarer Clip neben dem Text */
 .szene { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; }
 .szene .vid { margin: 0; position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
 .szene .vid video { width: 100%; height: 100%; object-fit: cover; }
@@ -212,6 +212,13 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .tba { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 26px 0 24px; }
 .tba .title { font-size: clamp(38px, 4.4vw, 64px); margin: 0 0 14px; }
 .tba-t { margin: 0; font-size: 17px; color: #4d4a45; }
+.nl { margin-top: 22px; }
+.nl-t { margin: 0 0 16px; font-size: 17px; }
+.nl .btn { color: var(--ink); }
+.nl .btn:hover, .nl .btn:focus-visible { background: var(--red); border-color: var(--red); color: #fff; }
+.nl-s { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: #6b6760; }
+.nl-s a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.nl-s a:hover { color: var(--red); }
 .cn { margin-top: 44px; padding: 22px 24px; background: #f6f2e9; border-left: 4px solid var(--red); }
 .cn .kicker { margin-bottom: 8px; }
 .cn p { margin: 0; font-size: 17px; line-height: 1.55; }
