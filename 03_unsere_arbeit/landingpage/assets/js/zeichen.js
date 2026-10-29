@@ -1,8 +1,11 @@
 /* Take the gloves off! – animierte Bildmarke
- * Die drei Stäbe werden eingezählt, der mittlere biegt sich auf die Vier, wird rot,
- * geht in Überblendungen durch die Figuren (Daumenkino) und wird wieder zum geraden Stab.
- * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f' })
- * Im svg: <path class="z-stab">, optional <g class="z-figuren"> mit einem <path> je Figur.
+ * Der mittlere Stab biegt sich, wird rot und verwandelt sich in hängende Luftartistik-Figuren und zurück.
+ * Die Verwandlungen laufen über Stützformen (morph.js) mit gleicher Punktzahl und Punktreihenfolge; pro Bild wird
+ * zwischen zwei Nachbarn linear interpoliert (Abspielen mit der Bildrate des Geräts, kein Umschalten in Stufen).
+ * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
+ * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Morph-Pfad auf).
+ * Programmierschnittstelle: set(bend, col) Stab zeichnen; morph(folge, u, rueckwaerts, col) Verwandlung (u 0..1, schon
+ * mit Easing); halte(figur, sway) Figur 0..2 stehend (sway: Neigung in Grad um den Gurtansatz).
  */
 (function () {
   'use strict';
@@ -32,123 +35,88 @@
     opts = opts || {};
     var stab = svg.querySelector('.z-stab');
     var g = svg.querySelector('.z-figuren');
-    if (g && !g.children.length && window.TTGO_FIGUREN) {
-      window.TTGO_FIGUREN.forEach(function (d) {
-        var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        p.setAttribute('d', d); g.appendChild(p);
-      });
-    }
-    // Figuren liegen hinter den äußeren Stäben: was breiter ist als die Zelle, verschwindet hinter dem Gitter
-    if (g && g !== svg.firstElementChild) svg.insertBefore(g, svg.firstElementChild);
-    var figs = Array.prototype.slice.call(svg.querySelectorAll('.z-figuren path:not(.z-morph)'));
+    if (g && g !== svg.firstElementChild) svg.insertBefore(g, svg.firstElementChild);   // Figuren hinter den äußeren Stäben
     var ink = hex(opts.ink || '#efebe3'), red = hex(opts.red || '#d22b1f');
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    figs.forEach(function (f) { f.style.opacity = 0; f.setAttribute('fill', opts.red || '#d22b1f'); });
-
-    // Der Stab verformt sich zur ersten Figur und die letzte Figur zurück zum Stab (Morph über gleich viele Umrisspunkte).
-    // Zwischen zwei Figuren liegt eine Doppelbelichtung.
-    var M = window.TTGO_MORPH, mp = null;
+    var M = window.TTGO_MORPH, mp = null, S = null, BR = null, BRUCH = 2.0;
     if (g && M) {
       mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       mp.setAttribute('class', 'z-morph'); mp.setAttribute('fill-rule', 'evenodd'); mp.style.opacity = 0;
-      g.insertBefore(mp, g.firstChild);
-    }
-    figs.forEach(function (f) { f.removeAttribute('transform'); });
-    function smooth(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
-    function morphD(i, t) {
-      if (M.frames && M.frames[i]) {                    // weiche Zwischenbilder (Abstandsfeld-Überblendung)
-        var fr = M.frames[i]; return fr[Math.max(0, Math.min(fr.length - 1, Math.round(t * (fr.length - 1))))];
-      }
-      var a = M.bar, b = M.figs[i], d = 'M';
-      for (var k = 0; k < a.length; k += 2) {
-        d += (k ? ' L' : '') + (a[k] + (b[k] - a[k]) * t).toFixed(2) + ' ' + (a[k + 1] + (b[k + 1] - a[k + 1]) * t).toFixed(2);
-      }
-      return d + ' Z';
-    }
-    function state(bend, col, figOp) {
-      stab.setAttribute('d', bentBar(BAR.bend * bend));
-      var fill = mix(ink, red, col);
-      stab.setAttribute('fill', fill);
-      var open = 0, top = 0;
-      figs.forEach(function (f, i) { var v = figOp[i] || 0; open += v; if (v > (figOp[top] || 0)) top = i; });
-      var pair = -1;                                    // zwei Nachbarfiguren zugleich sichtbar: Übergang
-      figs.forEach(function (f, i) { if ((figOp[i] || 0) > 0.001 && (figOp[i + 1] || 0) > 0.001) pair = i; });
-      if (open > 0.999 && pair >= 0 && mp && M.paare && M.paare[pair]) {   // Formmorph Figur -> Figur, immer genau eine deckende Form
-        var fr = M.paare[pair], pp = smooth((figOp[pair + 1] || 0) / ((figOp[pair] || 0) + (figOp[pair + 1] || 0)));
-        stab.style.opacity = 0;
-        mp.setAttribute('d', fr[Math.max(0, Math.min(fr.length - 1, Math.round(pp * (fr.length - 1))))]);
-        mp.setAttribute('fill', fill);
-        mp.style.opacity = 1;
-        figs.forEach(function (f) { f.style.opacity = 0; });
-      } else if (open > 0.999) {                        // eine Figur steht
-        stab.style.opacity = 0;
-        if (mp) mp.style.opacity = 0;
-        figs.forEach(function (f, i) { f.style.opacity = smooth(figOp[i] || 0); });
-      } else if (open > 0.001 && mp && M.figs[top]) { // Stab und Figur verformen sich ineinander
-        stab.style.opacity = 0;
-        mp.setAttribute('d', morphD(top, smooth(open)));
-        mp.setAttribute('fill', fill);
-        mp.style.opacity = 1;
-        figs.forEach(function (f) { f.style.opacity = 0; });
-      } else {
-        stab.style.opacity = 1;
-        if (mp) mp.style.opacity = 0;
-        figs.forEach(function (f) { f.style.opacity = 0; });
-      }
-    }
-    var api = { set: state, figuren: figs.length };
-    if (opts.manual) return api;                      // Ablauf kommt von außen (Kopf der Seite)
-    if (reduce || opts.still) { state(1, 1, []); return api; }
-
-    // Zeitplan in Sekunden: kurz dunkel, die Stäbe werden eingezählt (eins, zwei, drei),
-    // auf die Vier biegt sich der mittlere. Am Ende verlöschen alle drei, und es geht von vorn los.
-    var nf = figs.length, hold = 0.6, fade = 0.3, morph = 0.5;
-    var COUNT = [0.25, 0.65, 1.05], countDur = 0.32;
-    var tBend0 = 1.45, tBend1 = tBend0 + 0.9;
-    var tFig0 = tBend1 + 0.35;                        // der Stab beginnt sich zur Figur zu verformen
-    var figEnd = nf ? tFig0 + morph + nf * hold + (nf - 1) * fade : tBend1 + 1.2;
-    var tBack1 = figEnd + morph;                      // wieder der gebogene Stab
-    var tUn0 = tBack1 + 1.2, tUn1 = tUn0 + 0.8;
-    var tOut0 = tUn1 + 0.5, tOut1 = tOut0 + 0.35;
-    var total = tOut1 + 0.15;
-    var start = null;
-    var outer = Array.prototype.slice.call(svg.querySelectorAll(':scope > rect'));
-    var counted = outer.length === 2 ? [outer[0], stab, outer[1]] : [];
-    function expoOut(u) { return u >= 1 ? 1 : 1 - Math.pow(2, -10 * u); }
-    function scaleY(el, k) {
-      el.setAttribute('transform', k >= 1 ? '' : 'translate(0 ' + BAR.top + ') scale(1 ' + Math.max(k, 0.0001) + ') translate(0 ' + (-BAR.top) + ')');
-    }
-
-    function frame(now) {
-      if (start === null) start = now;
-      var s = ((now - start) / 1000) % total;
-      var bend, col, op = [];
-      if (s < tBend0) { bend = 0; col = 0; }
-      else if (s < tBend1) { var u = ease((s - tBend0) / (tBend1 - tBend0)); bend = u; col = lin((s - tBend0 - .3) / (tBend1 - tBend0 - .3)); }
-      else if (s < tUn0) { bend = 1; col = 1; }
-      else if (s < tUn1) { var v = ease((s - tUn0) / (tUn1 - tUn0)); bend = 1 - v; col = 1 - lin(v * 1.3); }
-      else { bend = 0; col = 0; }
-      for (var i = 0, a = tFig0; i < nf; i++) {
-        var inD = i ? fade : morph, outD = i < nf - 1 ? fade : morph;
-        var b = a + inD + hold;                        // Ausblenden beginnt (nächste kommt)
-        var o = 0;
-        if (s >= a && s < a + inD) o = (s - a) / inD;
-        else if (s >= a + inD && s < b) o = 1;
-        else if (s >= b && s < b + outD) o = 1 - (s - b) / outD;
-        op.push(o);
-        a = b;
-      }
-      state(bend, col, op);
-      counted.forEach(function (el, j) {
-        var k = lin((s - COUNT[j]) / countDur);
-        scaleY(el, expoOut(k));
-        if (k < 1) el.style.opacity = Math.min(1, k * 2.5);  // danach gilt wieder, was state() setzt
-        else if (el !== stab) el.style.opacity = 1;
+      g.appendChild(mp);
+      // Stützformen entpacken: je Bild Liste von Umrissen { id, p: Float32Array(x0,y0,x1,y1,...) }
+      S = {}; BR = {};
+      Object.keys(M.seq).forEach(function (name) {
+        S[name] = M.seq[name].map(function (row) {
+          var i = 1, fr = [];
+          for (var c = 0; c < row[0]; c++) {
+            var id = row[i], n = row[i + 1], p = new Float32Array(2 * n), x = row[i + 2], y = row[i + 3];
+            p[0] = x / M.q; p[1] = y / M.q;
+            for (var k = 1; k < n; k++) { x += row[i + 2 + 2 * k]; y += row[i + 3 + 2 * k]; p[2 * k] = x / M.q; p[2 * k + 1] = y / M.q; }
+            fr.push({ id: id, p: p }); i += 2 + 2 * n;
+          }
+          return fr;
+        });
+        // Nachbarbilder, deren Punkte sich um mehr als BRUCH Einheiten gegeneinander verschieben (Umrissliste wechselt,
+        // Punktreihenfolge rutscht an einer Verengung), werden nicht linear gemischt, sondern in der Mitte getauscht;
+        // bei dichter Bildfolge ist der Tausch unsichtbar, die Mischung dagegen würde die Form verzerren (Zucken).
+        BR[name] = S[name].slice(0, -1).map(function (a, i) {
+          var b = S[name][i + 1];
+          if (a.length !== b.length) return true;
+          for (var c = 0; c < a.length; c++) {
+            if (a[c].id !== b[c].id || a[c].p.length !== b[c].p.length) return true;
+            var p = a[c].p, q = b[c].p;
+            for (var k = 0; k < p.length; k += 2) { var dx = p[k] - q[k], dy = p[k + 1] - q[k + 1]; if (dx * dx + dy * dy > BRUCH * BRUCH) return true; }
+          }
+          return false;
+        });
       });
-      svg.style.opacity = s < tOut0 ? 1 : 1 - lin((s - tOut0) / (tOut1 - tOut0));
-      requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);
-    return api;
+    var HOLD = { 0: ['stab0', 1], 1: ['p01', 1], 2: ['p12', 1] };      // Figur i = letztes Bild dieser Folge
+
+    function pathOf(a, b, f, brk) {
+      var d = '', ok = f > 0 && b && !brk && a.length === b.length;
+      for (var c = 0; ok && c < a.length; c++) if (a[c].id !== b[c].id || a[c].p.length !== b[c].p.length) ok = false;
+      var src = ok ? null : (f >= 0.5 && b ? b : a);
+      var n = (ok ? a : src).length;
+      for (var c2 = 0; c2 < n; c2++) {
+        var p = (ok ? a : src)[c2].p, q = ok ? b[c2].p : null, m = p.length;
+        d += 'M';
+        for (var k = 0; k < m; k += 2) {
+          var x = q ? p[k] + (q[k] - p[k]) * f : p[k], y = q ? p[k + 1] + (q[k + 1] - p[k + 1]) * f : p[k + 1];
+          d += (k ? 'L' : '') + x.toFixed(2) + ' ' + y.toFixed(2);
+        }
+        d += 'Z';
+      }
+      return d;
+    }
+    function frameD(name, x) {                          // x = Bildnummer (gebrochen)
+      var fr = S[name], last = fr.length - 1;
+      x = Math.max(0, Math.min(last, x));
+      var i = Math.min(last - 1, Math.floor(x));
+      return pathOf(fr[i], fr[i + 1], x - i, BR[name][i]);
+    }
+    function showMorph(d, col, sway) {
+      stab.style.opacity = 0;
+      mp.setAttribute('d', d);
+      mp.setAttribute('fill', mix(ink, red, col));
+      if (sway) mp.setAttribute('transform', 'rotate(' + sway.toFixed(3) + ' 50 8)'); else mp.removeAttribute('transform');
+      mp.style.opacity = 1;
+    }
+    function set(bend, col) {                           // der gebogene Stab (gerade, gebogen, weiß, rot)
+      stab.setAttribute('d', bentBar(BAR.bend * bend));
+      stab.setAttribute('fill', mix(ink, red, col));
+      stab.style.opacity = 1;
+      if (mp) mp.style.opacity = 0;
+    }
+    function morph(name, u, rev, col) {
+      if (!mp || !S[name]) return;
+      var last = S[name].length - 1;
+      showMorph(frameD(name, (rev ? 1 - u : u) * last), col == null ? 1 : col, 0);
+    }
+    function halte(i, sway) {
+      if (!mp) return;
+      var h = HOLD[i];
+      showMorph(frameD(h[0], S[h[0]].length - 1), 1, sway);
+    }
+    return { set: set, morph: morph, halte: halte, figuren: 3 };
   };
 })();

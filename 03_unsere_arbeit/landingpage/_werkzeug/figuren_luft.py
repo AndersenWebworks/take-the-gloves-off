@@ -154,7 +154,7 @@ def fit(p, f):
         s *= 0.99
 
 
-def build(p, f, s, L, body=True):
+def build(p, f, s, L, body=True, spec=False):
     h, w = f.shape
     k = s * RES
     big = cv2.resize(f, (int(w * k), int(h * k)), interpolation=cv2.INTER_CUBIC)
@@ -172,6 +172,7 @@ def build(p, f, s, L, body=True):
     if body: canvas[ya:yb, xa:xb] = ((sub > .5) * 255).astype(np.uint8)
     P = lambda q: ((q[0] * s + px - X0) * RES, (q[1] * s + py - Y0) * RES)
     anchor = ((ANCHOR[0] - X0) * RES, (ANCHOR[1] - Y0) * RES)
+    if spec: return dict(anchor=anchor, bands=[(anchor, P(q)) for q in p["straps"]] + [(P(a), P(b)) for a, b in p["extra"]], close=True)
     for q in p["straps"]: band(canvas, anchor, P(q), BAND * RES)
     for a, b in p["extra"]: band(canvas, P(a), P(b), BAND * RES, False)
     canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, disk(0.55 * RES))               # spitze Keile und Haarrisse zu
@@ -185,7 +186,7 @@ def build(p, f, s, L, body=True):
 _POSEN_CACHE = {}
 
 
-def pose_canvas(name, body=True):
+def pose_canvas(name, body=True, spec=False):
     """frei entworfene Figur aus Körpersegmenten (figuren_koerper.py): Maske im Raster des Zeichens plus gerade Gurte"""
     from figuren_koerper import pose_skaliert
     W, H = int((X1 - X0) * RES), int((Y1 - Y0) * RES)
@@ -197,6 +198,7 @@ def pose_canvas(name, body=True):
     mask, grips = _POSEN_CACHE[name]
     canvas = mask.copy() if body else np.zeros((H, W), np.uint8)
     anchor = ((ANCHOR[0] - X0) * RES, (ANCHOR[1] - Y0) * RES)
+    if spec: return dict(anchor=anchor, bands=[(anchor, ((g[0] - X0) * RES, (g[1] - Y0) * RES)) for g in grips], close=False)
     for g in grips: band(canvas, anchor, ((g[0] - X0) * RES, (g[1] - Y0) * RES), BAND * RES)
     if body:
         canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, disk(0.55 * RES))
@@ -445,14 +447,14 @@ def paar_ueber_gurt(ca, cb, ga, gb):
 
 
 if __name__ == "__main__":
-    out, canvases, strapcv = [], [], []
+    out, canvases, strapcv, specs = [], [], [], []
     for p in FIGUREN:
         if p.get("pose"):
-            canvas = pose_canvas(p["pose"]); canvases.append(canvas); strapcv.append(pose_canvas(p["pose"], body=False)); s, L = 1.0, 0
+            canvas = pose_canvas(p["pose"]); canvases.append(canvas); strapcv.append(pose_canvas(p["pose"], body=False)); specs.append(pose_canvas(p["pose"], spec=True)); s, L = 1.0, 0
         else:
             f = person(p)
             s, L = fit(p, f)
-            canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False))
+            canvas = build(p, f, s, L); canvases.append(canvas); strapcv.append(build(p, f, s, L, body=False)); specs.append(build(p, f, s, L, spec=True))
         d, bb = vectorise(canvas)
         out.append(d)
         print(p.get("ref", p.get("pose")), "Maßstab", round(s, 4), "L", round(L, 1), "Rahmen", tuple(round(float(v), 1) for v in bb), "Länge", len(d))
@@ -462,15 +464,12 @@ if __name__ == "__main__":
         fh.write("/* Luftartistik-Silhouetten für die Verwandlung der Bildmarke (Probefassung), Personen aus Referenzfotos freigestellt, "
                  "Gurte neu gesetzt (erzeugt mit _werkzeug/figuren_luft.py) */\nwindow.TTGO_FIGUREN = " + json.dumps(out) + ";\n")
     mj = os.path.join(LP, "assets", "js", "morph.js")
-    old = open(mj, encoding="utf-8").read()
-    bar = json.loads(old[old.index("{"):old.rindex("}") + 1])["bar"]
-    barp = [(bar[i], bar[i + 1]) for i in range(0, len(bar), 2)]
-    figs = [align(barp, resample(parse(d), N)) for d in out]
-    flat = lambda pp: [round(v, 2) for q in pp for v in q]
-    data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, strapcv[k], c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)],
-            "paare": [(paar_ueber_gurt if k == 0 else paar_bilder)(canvases[k], canvases[k + 1], strapcv[k], strapcv[k + 1]) for k in range(len(canvases) - 1)]}
+    import morph_dicht
+    seqs = morph_dicht.alles(canvases, strapcv, specs)
+    data = {"kt": morph_dicht.KT, "q": 50, "seq": {k: morph_dicht.kodieren(v) for k, v in seqs.items()}}
     with open(mj, "w", encoding="utf-8") as f:
-        f.write("/* Punktfolgen für den Morph zwischen gebogenem Stab und Luftartistik-Figuren (erzeugt mit _werkzeug/figuren_luft.py) */\n")
+        f.write("/* Stützformen für die Verwandlung der Bildmarke: je Folge KT Bilder, Umrisse mit gleicher Punktzahl und -reihenfolge "
+                "(erzeugt mit _werkzeug/figuren_luft.py und morph_dicht.py) */\n")
         f.write("window.TTGO_MORPH = " + json.dumps(data, separators=(",", ":")) + ";\n")
     cells = "".join(f'<g transform="translate({i*70} 0)"><rect x="21.5" y="8" width="9" height="84" fill="#efebe3"/>'
                     f'<rect x="69.5" y="8" width="9" height="84" fill="#efebe3"/><path d="{d}" fill="#d22b1f" fill-rule="evenodd"/></g>'

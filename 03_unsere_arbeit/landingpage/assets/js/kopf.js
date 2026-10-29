@@ -86,39 +86,49 @@
     [3.7, 0.12, 0.45, 'wv'],
     [4.13, 0.1, 0.3, 'w']
   ];
-  // Kreislauf des Zeichens: ruhen, Figuren (Daumenkino), ruhen, aufrichten, brechen
-  // Takt der Verwandlung: gleich lange Haltezeiten (figHold) für alle drei Figuren, ein Übergangsmaß (0,8 s) für
-  // Stab -> Figur, Figur -> Figur und Figur -> Stab; danach ruht der gebogene Stab, richtet sich auf und bricht.
-  var L = { hold: 0.4, morph: 0.8, fades: [0.9, 0.8], figHold: [1.7, 1.7, 1.7], back: 0.8, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6 };
+  // Kreislauf des Zeichens: ruhen, Figuren, ruhen, aufrichten, brechen
+  // Takt der Verwandlung: Haltezeit je Figur 1,7 s, Übergänge 0,9 bis 1,0 s mit weichem Ein- und Ausschwingen (Sinus);
+  // die Formen werden pro Bild zwischen Stützformen interpoliert (zeichen.js). Danach ruht der gebogene Stab,
+  // richtet sich auf und bricht.
+  var L = { hold: 0.4, m: [1.0, 1.0, 0.9, 0.9], figHold: [1.7, 1.7, 1.7], hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6, sway: 0.45 };
   var figStart = L.hold;
-  var figEnd = figStart + L.morph + L.fades.reduce(function (a, b) { return a + b; }, 0) + L.figHold.reduce(function (a, b) { return a + b; }, 0);
-  var backEnd = figEnd + L.back;
+  var SEG = [];                                             // Abschnitte der Figurenphase: Übergang, Haltezeit, ...
+  (function () {
+    var t = figStart;
+    function add(kind, dur, a, b) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, b: b }); t += dur; }
+    add('morph', L.m[0], 'stab0', false); add('hold', L.figHold[0], 0);
+    add('morph', L.m[1], 'p01', false); add('hold', L.figHold[1], 1);
+    add('morph', L.m[2], 'p12', false); add('hold', L.figHold[2], 2);
+    add('morph', L.m[3], 'stab2', true);
+    SEG.end = t;
+  })();
+  var backEnd = SEG.end, figEnd = backEnd - L.m[3];
   var upStart = backEnd + L.hold2, upEnd = upStart + L.up;
   var snapStart = upEnd + L.rest, LOOP = snapStart + L.snap;
-
+  function easeSine(u) { return 0.5 - 0.5 * Math.cos(Math.PI * clamp(u)); }
   function loopState(u) {
-    var bend = 1, col = 1, op = L.figHold.map(function () { return 0; });
+    var bend = 1, col = 1, morph = null, hold = -1, sway = 0;
     // Atmen des gebogenen Stabs: nur in der Ruhe, an den Übergängen zur Figur und zum Aufrichten auf null gezogen (kein Sprung)
     var env = Math.min(1 - seg(u, 0, figStart), 1) + (u >= figStart ? Math.min(seg(u, backEnd, 1.0), 1 - seg(u, upStart - 1.0, 1.0)) : 0);
     var breath = 1 + 0.035 * env * Math.sin(u * Math.PI * 2 / 4.6);
     if (u < figStart) bend = breath;
     else if (u < backEnd) {
-      // Daumenkino mit Überblendung
-      var a = figStart;
-      for (var i = 0; i < L.figHold.length; i++) {
-        var inD = i ? L.fades[i - 1] : L.morph;                // der Stab verformt sich zur ersten Figur
-        var inA = a, inB = a + inD, outA = inB + L.figHold[i];
-        var outD = i < L.figHold.length - 1 ? L.fades[i] : L.back;
-        if (u >= inA && u < inB) op[i] = (u - inA) / inD;
-        else if (u >= inB && u < outA) op[i] = 1;
-        else if (u >= outA && u < outA + outD) op[i] = 1 - (u - outA) / outD;
-        a = outA;
+      for (var i = 0; i < SEG.length; i++) {
+        var s = SEG[i];
+        if (u < s.t0 || u >= s.t1) continue;
+        var x = (u - s.t0) / (s.t1 - s.t0);
+        if (s.kind === 'morph') morph = { name: s.a, u: easeSine(x), rev: s.b };
+        else {   // leichtes Nachpendeln um den Gurtansatz, an den Übergängen auf null
+          hold = s.a; var sn = Math.sin(Math.PI * x);
+          sway = L.sway * (s.a % 2 ? -1 : 1) * sn * sn * Math.sin(2 * Math.PI * x);
+        }
+        break;
       }
     } else if (u < upStart) bend = breath;
     else if (u < upEnd) { var v = inOut(seg(u, upStart, L.up)); bend = 1 - v; col = 1 - clamp(v * 1.4); }
     else if (u < snapStart) { bend = 0; col = 0; }
     else { var w = seg(u, snapStart, L.snap); bend = backOut(w); col = clamp(w * 1.8); }
-    return { bend: bend, col: col, op: op };
+    return { bend: bend, col: col, morph: morph, hold: hold, sway: sway };
   }
 
   var cur = { bend: 0 };
@@ -186,7 +196,7 @@
 
   // ---------- Endzustand ohne Bewegung ----------
   if (reduce) {
-    if (Z) Z.set(1, 1, []);
+    if (Z) Z.set(1, 1);
     root.classList.remove('intro');
     hero.classList.add('lit', 'ui-on');
     if (window.TTGOfx && fxwrap && video) try { TTGOfx.biegen(fxwrap, video, { drive: function () { return 0.6; } }); } catch (e) {}
@@ -232,12 +242,16 @@
     var st;
     if (t < T.loop) {
       var b = inOut(seg(t, T.bend, T.bendDur));
-      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), op: [] };
+      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), morph: null, hold: -1 };
     } else {
       st = loopState((t - T.loop) % LOOP);
     }
     cur.bend = st.bend;
-    if (Z) Z.set(st.bend, st.col, st.op);
+    if (Z) {
+      if (st.morph) Z.morph(st.morph.name, st.morph.u, st.morph.rev, 1);
+      else if (st.hold >= 0) Z.halte(st.hold, st.sway);
+      else Z.set(st.bend, st.col);
+    }
 
     // Signalstörungen
     var gt = t, gl = GL;
@@ -298,7 +312,7 @@
   // Druck: alles im Endzustand
   window.addEventListener('beforeprint', function () {
     stM(0); stW(0);
-    if (Z) Z.set(1, 1, []);
+    if (Z) Z.set(1, 1);
     if (mark) mark.style.transform = '';
     if (W) {
       W.lines.forEach(function (ln) { ln.el.setAttribute('transform', ''); });
