@@ -115,8 +115,8 @@
     { was: 'pose', pose: 1, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10 },
     // Höhepunkt: Figur 4 (zusammengekrümmt in der Schlaufe), stärkster Blitz, steht lange rot, glimmt dann langsam aus
     { was: 'pose', pose: 3, dunkel: b(0.25),  halt: b(3.75),  weiss: 0.10, rot: 0.22, glow: 0.18, schein: 3, radius: 1.3, fade: 0.60 },
-    // Ruhe: Dunkel, dann erscheint der Stab sanft (ohne Blitz, ohne Störung) und atmet
-    { was: 'stab', dunkel: b(1.0), halt: b(4.0), ein: 0.7, atmen: true }
+    // Ruhe (2 Takte statt 1): Dunkel, dann erscheint der Stab sanft und atmet; auf Schlag 5 der Sichtbarkeit ein kurzes, leises Nachbeben (Störung nur am Zeichen, kein Blitz)
+    { was: 'stab', dunkel: b(1.0), halt: b(8.0), ein: 0.7, atmen: true, stoerung: [b(5.0), 0.14, 0.3, 'm'] }
   ];
   var FIGUREN = 5;                                      // Anzahl der Figuren (morph.js: p0 bis p4)
   var TL = [], LOOP = 0, GLSCORE = [], BLITZE = [];     // Zeitplan, Zykluslänge, Störungen, Blitzstarts (aus SCORE errechnet)
