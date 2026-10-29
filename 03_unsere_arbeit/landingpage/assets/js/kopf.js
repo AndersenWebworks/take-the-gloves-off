@@ -87,27 +87,32 @@
     [4.13, 0.1, 0.3, 'w']
   ];
   // Kreislauf des Zeichens: ruhen, Figuren, ruhen, aufrichten, brechen
-  // Takt der Verwandlung: Haltezeit je Figur 1,7 s, Übergänge 0,9 bis 1,0 s mit weichem Ein- und Ausschwingen (Sinus);
-  // die Formen werden pro Bild zwischen Stützformen interpoliert (zeichen.js). Danach ruht der gebogene Stab,
-  // richtet sich auf und bricht.
-  var L = { hold: 0.4, m: [1.0, 1.0, 0.9, 0.9], figHold: [1.7, 1.7, 1.7], hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6, sway: 0.45 };
+  // Takt der Verwandlung: Stab -> Figur 1 und Figur 3 -> Stab sind weiche Formmorphe (zeichen.js, Stützformen aus
+  // morph.js). Zwischen den Figuren wird nicht gemorpht, sondern hart gewechselt wie bei einem Kamerablitz im Verhör:
+  // die Figur geht aus (DUNKEL), die nächste steht sofort vollständig da und glüht rot nach (GLUEHEN, klingt auf den
+  // Normalzustand ab). Je Wechsel genau ein Lichtwechsel, kein Weiß, kein Flackern.
+  var HALTEZEIT = 2.0;      // s, Figur steht ruhig (ohne Dunkelphase), je Figur
+  var DUNKEL = 0.11;        // s, Figur aus, vor dem Auftauchen der nächsten (80 bis 150 ms)
+  var GLUEHEN = 0.32;       // s, Nachglühen der neuen Figur bis zum Normalzustand (200 bis 400 ms)
+  var L = { hold: 0.4, morph: 1.0, back: 0.9, hold2: 2.6, up: 0.7, rest: 0.9, snap: 0.6, sway: 0.45 };
   var figStart = L.hold;
   var SEG = [];                                             // Abschnitte der Figurenphase: Übergang, Haltezeit, ...
   (function () {
     var t = figStart;
-    function add(kind, dur, a, b) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, b: b }); t += dur; }
-    add('morph', L.m[0], 'stab0', false); add('hold', L.figHold[0], 0);
-    add('morph', L.m[1], 'p01', false); add('hold', L.figHold[1], 1);
-    add('morph', L.m[2], 'p12', false); add('hold', L.figHold[2], 2);
-    add('morph', L.m[3], 'stab2', true);
+    function add(kind, dur, a, b, dark) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, b: b, dark: dark || 0 }); t += dur; }
+    add('morph', L.morph, 'stab0', false);
+    add('hold', HALTEZEIT, 0);
+    add('hold', DUNKEL + HALTEZEIT, 1, false, DUNKEL);      // harter Wechsel Figur 1 -> 2
+    add('hold', DUNKEL + HALTEZEIT, 2, false, DUNKEL);      // harter Wechsel Figur 2 -> 3
+    add('morph', L.back, 'stab2', true);
     SEG.end = t;
   })();
-  var backEnd = SEG.end, figEnd = backEnd - L.m[3];
+  var backEnd = SEG.end, figEnd = backEnd - L.back;
   var upStart = backEnd + L.hold2, upEnd = upStart + L.up;
   var snapStart = upEnd + L.rest, LOOP = snapStart + L.snap;
   function easeSine(u) { return 0.5 - 0.5 * Math.cos(Math.PI * clamp(u)); }
   function loopState(u) {
-    var bend = 1, col = 1, morph = null, hold = -1, sway = 0;
+    var bend = 1, col = 1, morph = null, hold = -1, sway = 0, glow = 0, dark = false;
     // Atmen des gebogenen Stabs: nur in der Ruhe, an den Übergängen zur Figur und zum Aufrichten auf null gezogen (kein Sprung)
     var env = Math.min(1 - seg(u, 0, figStart), 1) + (u >= figStart ? Math.min(seg(u, backEnd, 1.0), 1 - seg(u, upStart - 1.0, 1.0)) : 0);
     var breath = 1 + 0.035 * env * Math.sin(u * Math.PI * 2 / 4.6);
@@ -118,9 +123,14 @@
         if (u < s.t0 || u >= s.t1) continue;
         var x = (u - s.t0) / (s.t1 - s.t0);
         if (s.kind === 'morph') morph = { name: s.a, u: easeSine(x), rev: s.b };
-        else {   // leichtes Nachpendeln um den Gurtansatz, an den Übergängen auf null
-          hold = s.a; var sn = Math.sin(Math.PI * x);
-          sway = L.sway * (s.a % 2 ? -1 : 1) * sn * sn * Math.sin(2 * Math.PI * x);
+        else {   // Haltezeit; am Anfang Dunkelphase und Nachglühen eines harten Wechsels
+          var tt = u - s.t0;
+          if (tt < s.dark) dark = true;
+          else if (s.dark) { var gx = (tt - s.dark) / GLUEHEN; glow = gx < 1 ? Math.pow(1 - gx, 2) : 0; }
+          hold = s.a;
+          // leichtes Nachpendeln um den Gurtansatz, nach dem Wechsel auf null
+          var x2 = (tt - s.dark) / (s.t1 - s.t0 - s.dark), sn = Math.sin(Math.PI * clamp(x2));
+          sway = L.sway * (s.a % 2 ? -1 : 1) * sn * sn * Math.sin(2 * Math.PI * clamp(x2));
         }
         break;
       }
@@ -128,7 +138,7 @@
     else if (u < upEnd) { var v = inOut(seg(u, upStart, L.up)); bend = 1 - v; col = 1 - clamp(v * 1.4); }
     else if (u < snapStart) { bend = 0; col = 0; }
     else { var w = seg(u, snapStart, L.snap); bend = backOut(w); col = clamp(w * 1.8); }
-    return { bend: bend, col: col, morph: morph, hold: hold, sway: sway };
+    return { bend: bend, col: col, morph: morph, hold: hold, sway: sway, glow: glow, dark: dark };
   }
 
   var cur = { bend: 0 };
@@ -249,7 +259,8 @@
     cur.bend = st.bend;
     if (Z) {
       if (st.morph) Z.morph(st.morph.name, st.morph.u, st.morph.rev, 1);
-      else if (st.hold >= 0) Z.halte(st.hold, st.sway);
+      else if (st.dark) Z.dunkel();
+      else if (st.hold >= 0) Z.halte(st.hold, st.sway, st.glow);
       else Z.set(st.bend, st.col);
     }
 

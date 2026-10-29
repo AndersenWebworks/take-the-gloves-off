@@ -466,6 +466,7 @@ if __name__ == "__main__":
     mj = os.path.join(LP, "assets", "js", "morph.js")
     import morph_dicht
     seqs = morph_dicht.alles(canvases, strapcv, specs)
+    for k in ("p01", "p12"): seqs[k] = seqs[k][-1:]            # v9: harter Flash-Wechsel, nur die Zielfigur wird gebraucht
     data = {"kt": morph_dicht.KT, "q": 50, "seq": {k: morph_dicht.kodieren(v) for k, v in seqs.items()}}
     with open(mj, "w", encoding="utf-8") as f:
         f.write("/* Stützformen für die Verwandlung der Bildmarke: je Folge KT Bilder, Umrisse mit gleicher Punktzahl und -reihenfolge "

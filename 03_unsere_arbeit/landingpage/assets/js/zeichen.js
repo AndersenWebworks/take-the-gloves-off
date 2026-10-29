@@ -1,11 +1,12 @@
 /* Take the gloves off! – animierte Bildmarke
  * Der mittlere Stab biegt sich, wird rot und verwandelt sich in hängende Luftartistik-Figuren und zurück.
- * Die Verwandlungen laufen über Stützformen (morph.js) mit gleicher Punktzahl und Punktreihenfolge; pro Bild wird
+ * Die Verwandlungen Stab <-> Figur laufen über Stützformen (morph.js) mit gleicher Punktzahl und Punktreihenfolge; pro Bild wird
  * zwischen zwei Nachbarn linear interpoliert (Abspielen mit der Bildrate des Geräts, kein Umschalten in Stufen).
  * Aufruf: TTGOzeichen(svg, { ink: '#efebe3', red: '#d22b1f', manual: true })
  * Im svg: <path class="z-stab">, <g class="z-figuren"> (nimmt den Morph-Pfad auf).
  * Programmierschnittstelle: set(bend, col) Stab zeichnen; morph(folge, u, rueckwaerts, col) Verwandlung (u 0..1, schon
- * mit Easing); halte(figur, sway) Figur 0..2 stehend (sway: Neigung in Grad um den Gurtansatz).
+ * mit Easing); halte(figur, sway, glow) Figur 0..2 stehend (sway: Neigung in Grad um den Gurtansatz, glow: Nachglühen 0..1);
+ * dunkel() alles aus. Zwischen den Figuren gibt es keine Zwischenformen: p01 und p12 in morph.js enthalten nur die Zielfigur.
  */
 (function () {
   'use strict';
@@ -70,7 +71,8 @@
         });
       });
     }
-    var HOLD = { 0: ['stab0', 1], 1: ['p01', 1], 2: ['p12', 1] };      // Figur i = letztes Bild dieser Folge
+    var HOLD = ['stab0', 'p01', 'p12'];                                 // Figur i = letztes Bild dieser Folge (p01, p12: nur dieses eine Bild)
+    var HOT = [240, 62, 46];                                           // heißeres Rot für das Nachglühen
 
     function pathOf(a, b, f, brk) {
       var d = '', ok = f > 0 && b && !brk && a.length === b.length;
@@ -99,7 +101,7 @@
       mp.setAttribute('d', d);
       mp.setAttribute('fill', mix(ink, red, col));
       if (sway) mp.setAttribute('transform', 'rotate(' + sway.toFixed(3) + ' 50 8)'); else mp.removeAttribute('transform');
-      mp.style.opacity = 1;
+      mp.style.opacity = 1; mp.style.filter = '';
     }
     function set(bend, col) {                           // der gebogene Stab (gerade, gebogen, weiß, rot)
       stab.setAttribute('d', bentBar(BAR.bend * bend));
@@ -112,11 +114,22 @@
       var last = S[name].length - 1;
       showMorph(frameD(name, (rev ? 1 - u : u) * last), col == null ? 1 : col, 0);
     }
-    function halte(i, sway) {
+    // Figur i (0..2) steht vollständig da. glow 0..1: Nachglühen nach dem Flash (wärmeres Rot plus roter Lichthof,
+    // nie Weiß); 0 = Normalzustand ohne Filter.
+    function halte(i, sway, glow) {
       if (!mp) return;
-      var h = HOLD[i];
-      showMorph(frameD(h[0], S[h[0]].length - 1), 1, sway);
+      var fr = S[HOLD[i]], f = fr[fr.length - 1];
+      showMorph(pathOf(f, null, 0, false), 1, sway);
+      var g = glow > 0 ? Math.min(1, glow) : 0;
+      if (g) {
+        mp.setAttribute('fill', mix(red, HOT, g * 0.8));
+        mp.style.filter = 'drop-shadow(0 0 ' + (0.6 + 2.2 * g).toFixed(2) + 'px rgba(255,40,25,' + (0.7 * g).toFixed(3) + '))';
+      } else mp.style.filter = '';
     }
-    return { set: set, morph: morph, halte: halte, figuren: 3 };
+    function dunkel() {                                 // Figur aus (Dunkelphase des Flash): weder Stab noch Figur
+      if (!mp) return;
+      stab.style.opacity = 0; mp.style.opacity = 0; mp.style.filter = '';
+    }
+    return { set: set, morph: morph, halte: halte, dunkel: dunkel, figuren: 3 };
   };
 })();
