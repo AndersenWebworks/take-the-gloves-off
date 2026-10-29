@@ -396,6 +396,54 @@ def paar_bilder(ca, cb, ga, gb):
     return out
 
 
+def paar_ueber_gurt(ca, cb, ga, gb):
+    """Verwandlung Figur A -> Figur B über den Gurt, nie mit einem Zwischenkörper aus beiden Posen:
+    A schrumpft als verkleinerte Silhouette in die Hände, der Gurt morpht flächentreu vom Gurt A über ein Einzelband zum
+    Gurt B, danach wächst B aus seinen Händen."""
+    W, H = int((X1 - X0) * R2), int((Y1 - Y0) * R2)
+    rs = lambda c: (cv2.resize(c, (W, H), interpolation=cv2.INTER_AREA) > 127).astype(np.uint8)
+    A, B, GA, GB = rs(ca), rs(cb), rs(ga), rs(gb)
+    sd = lambda m: cv2.distanceTransform(1 - m, cv2.DIST_L2, 5) - cv2.distanceTransform(m, cv2.DIST_L2, 5)
+    sm = lambda u: u * u * (3 - 2 * u)
+    def treu(f, ziel):
+        lo, hi_ = -40.0, 60.0
+        for _ in range(30):
+            mid = (lo + hi_) / 2
+            if (f < mid).sum() < ziel: lo = mid
+            else: hi_ = mid
+        return f - (lo + hi_) / 2
+    def pivot(M, G):
+        b = biggest(cv2.morphologyEx(M & (1 - G), cv2.MORPH_OPEN, disk(4)))
+        ys, xs = np.nonzero(b); k = ys < ys.min() + 2 * R2
+        return float(xs[k].mean()), float(ys.min() + 3 * R2)
+    pA, pB = pivot(A, GA), pivot(B, GB)
+    def skaliert(M, p, k):
+        return (cv2.warpAffine(M * 255, np.float32([[k, 0, p[0] * (1 - k)], [0, k, p[1] * (1 - k)]]), (W, H), flags=cv2.INTER_LINEAR) > 127).astype(np.uint8)
+    T = {"s0": 0.0, "s1": 0.42, "g0": 0.25, "g1": 0.75, "w0": 0.58, "w1": 1.0}
+    fgA, fgB = sd(GA), sd(GB)
+    out = []
+    for i in range(KP):
+        t = i / (KP - 1)
+        # Körper: erst A schrumpft, dann wächst B (nie beide zugleich)
+        if t <= T["s1"]: body = skaliert(A, pA, max(1 - sm(t / T["s1"]), 0.0))
+        elif t < T["w0"]: body = np.zeros((H, W), np.uint8)
+        else: body = skaliert(B, pB, max(sm((t - T["w0"]) / (T["w1"] - T["w0"])), 0.0))
+        if body.sum() < 30: body[:] = 0
+        # Gurt
+        v = min(max((t - T["g0"]) / (T["g1"] - T["g0"]), 0), 1); vs = sm(v)
+        g = ((1 - vs) * pA[0] + vs * pB[0], (1 - vs) * pA[1] + vs * pB[1])
+        link = np.zeros((H, W), np.uint8); band(link, ((ANCHOR[0] - X0) * R2, 0), g, BAND * R2)
+        Lk = (link > 0).astype(np.uint8); fl = sd(Lk)
+        if v <= 0: gur = GA
+        elif v >= 1: gur = GB
+        elif vs < 0.5:
+            w = vs / 0.5; gur = (treu((1 - w) * fgA + w * fl, (1 - w) * GA.sum() + w * Lk.sum()) < 0).astype(np.uint8)
+        else:
+            w = (vs - 0.5) / 0.5; gur = (treu((1 - w) * fl + w * fgB, (1 - w) * Lk.sum() + w * GB.sum()) < 0).astype(np.uint8)
+        out.append(pfad_aus_feld(sd(body | gur)))
+    return out
+
+
 if __name__ == "__main__":
     out, canvases, strapcv = [], [], []
     for p in FIGUREN:
@@ -420,7 +468,7 @@ if __name__ == "__main__":
     figs = [align(barp, resample(parse(d), N)) for d in out]
     flat = lambda pp: [round(v, 2) for q in pp for v in q]
     data = {"bar": bar, "figs": [flat(f) for f in figs], "frames": [zwischenbilder(barp, strapcv[k], c) if k in (0, len(canvases) - 1) else None for k, c in enumerate(canvases)],
-            "paare": [paar_bilder(canvases[k], canvases[k + 1], strapcv[k], strapcv[k + 1]) for k in range(len(canvases) - 1)]}
+            "paare": [(paar_ueber_gurt if k == 0 else paar_bilder)(canvases[k], canvases[k + 1], strapcv[k], strapcv[k + 1]) for k in range(len(canvases) - 1)]}
     with open(mj, "w", encoding="utf-8") as f:
         f.write("/* Punktfolgen für den Morph zwischen gebogenem Stab und Luftartistik-Figuren (erzeugt mit _werkzeug/figuren_luft.py) */\n")
         f.write("window.TTGO_MORPH = " + json.dumps(data, separators=(",", ":")) + ";\n")
