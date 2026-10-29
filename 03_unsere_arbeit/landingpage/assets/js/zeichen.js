@@ -85,15 +85,17 @@
       stab.style.opacity = alpha == null ? 1 : alpha;
       if (mp) mp.style.opacity = 0;
     }
-    // Figur i (0..4), tt = Sekunden seit dem Auftauchen, dur = Haltezeit. Blitz: schlagartig warmes Weiß (kleiner weißer Schein),
+    // Figur i (0..4), tt = Sekunden seit dem Auftauchen, dur = Haltezeit, fx = Blitzdaten der Partitur. Blitz: schlagartig warmes Weiß (kleiner weißer Schein),
     // dann Weiß -> Rot, Rot steht, am Ende der Haltezeit ausfaden. Nie Drehung, Skalierung oder Versatz: die Figur steht still.
-    function halte(i, tt, dur) {
+    // fx (aus der Partitur): weiss, rot (Sekunden), glow (Dauer des Scheins), schein (Stärke), fade (Sekunden Ausglimmen am Ende)
+    function halte(i, tt, dur, fx) {
       if (!mp) return;
-      var F = opts.flash || {};
-      var wWhite = F.white == null ? 0.05 : F.white, wRed = F.red == null ? 0.12 : F.red, wGlow = F.glow == null ? 0.06 : F.glow, wFade = F.fade == null ? 0.4 : F.fade;
+      var F = fx || opts.flash || {};
+      var wWhite = F.weiss == null ? 0.05 : F.weiss, wRed = F.rot == null ? 0.12 : F.rot, wGlow = F.glow == null ? 0.06 : F.glow,
+        wFade = F.fade == null ? dur * 0.4 : Math.min(F.fade, dur), k = F.schein == null ? 1 : F.schein;
       showMorph(pathOf(S[HOLD[i]][0]), mix(WHITE, red, lin((tt - wWhite) / wRed)));
-      mp.style.opacity = 1 - lin((tt - dur * (1 - wFade)) / (dur * wFade));
-      if (tt < wGlow) mp.style.filter = 'drop-shadow(0 0 ' + (2.2 * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + (0.9 * (1 - tt / wGlow)).toFixed(2) + '))';
+      mp.style.opacity = 1 - lin((tt - (dur - wFade)) / wFade);
+      if (tt < wGlow) mp.style.filter = 'drop-shadow(0 0 ' + (2.2 * k * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + Math.min(1, 0.9 * k * (1 - tt / wGlow)).toFixed(2) + '))';
     }
     function dunkel() {                                 // Bild aus (Dunkelphase): weder Stab noch Figur
       if (!mp) return;

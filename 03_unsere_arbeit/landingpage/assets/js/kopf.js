@@ -15,7 +15,7 @@
   var mark = hero.querySelector('svg.zeichen-kopf');
   var bars = mark ? mark.querySelectorAll(':scope > rect') : [];
   var stab = mark ? mark.querySelector('.z-stab') : null;
-  var Z = mark ? TTGOzeichen(mark, { flash: { white: BLITZ_WEISS, red: BLITZ_ROT, glow: BLITZ_GLOW, fade: FADE_ANTEIL }, ink: mark.getAttribute('data-ink') || '#efebe3', red: '#d22b1f', manual: true }) : null;
+  var Z = mark ? TTGOzeichen(mark, { ink: mark.getAttribute('data-ink') || '#efebe3', red: '#d22b1f', manual: true }) : null;
   var word = hero.querySelector('svg.wordmark');
   var fxwrap = document.getElementById('heroFx');
   var video = document.getElementById('heroVid');
@@ -86,60 +86,69 @@
     [3.7, 0.12, 0.45, 'wv'],
     [4.13, 0.1, 0.3, 'w']
   ];
-  // Kreislauf des Zeichens: ruhen, Figuren, ruhen, aufrichten, brechen
-  // Takt der Verwandlung: kein Morph. Stab -> Figur 1 -> ... -> Figur 5 -> Stab wechseln hart wie ein Kamerablitz im
-  // Verhör: das Bild geht aus (DUNKEL[i]), die nächste Figur steht sofort vollständig und absolut still da.
-  // Einziger Lichtakzent: IMPULS Sekunden lang ein etwas heißeres Rot (reine Füllfarbe, kein Filter, keine Formänderung),
-  // dann sofort normal. Je Wechsel genau ein Lichtwechsel, kein Weiß, kein Flackern.
-  // Der Takt beschleunigt sich: Haltezeiten und Dunkelphasen werden je Figur kürzer. Hier einstellen:
-  var STAB_ANFANG = 0.6;                                // s, Stab steht zu Beginn des Zyklus ruhig (zusammen mit STAB_ENDE ca. 2 s Stab je Zyklus)
-  var STAB_AUS = 0.08;                                  // s, Stab verlischt am Ende von STAB_ANFANG (Ausfaden), danach Dunkelphase und Blitz Figur 1
-  var HALTEZEITEN = [0.90, 0.70, 0.55, 0.45, 0.38];     // s, Figur 1 bis 5 steht still (nach der Dunkelphase)
-  var DUNKELZEITEN = [0.10, 0.09, 0.08, 0.07, 0.06];    // s, Bild aus, vor dem Auftauchen der Figur 1 bis 5
-  var ZAESUR = 0.60;                                    // s, Dunkelpause nach der letzten Figur, bevor der Stab zurückkehrt
-  var STAB_ENDE = 1.4;                                  // s, Stab steht nach seinem Blitz, bevor der Zyklus neu beginnt
-  var STAB_WEISS = 0.10;                                // s, Stab blitzt weiß auf (ruhiger als die Figuren)
-  var STAB_ROT = 0.35;                                  // s, Weiß färbt sich ins Rot
-  // Blitz je Figur (Sekunden ab dem Auftauchen): weiß -> rot -> ausfaden. Mindestabstand der Blitze = Dunkel + Haltezeit >= 0,44 s (< 3 pro Sekunde)
-  var BLITZ_WEISS = 0.05;                               // s, Figur steht schlagartig in warmem Weiß
-  var BLITZ_ROT = 0.12;                                 // s, Weiß färbt sich ins Rot
-  var BLITZ_GLOW = 0.06;                                // s, kleiner weißer Schein um die Figur, danach aus
-  var FADE_ANTEIL = 0.40;                               // Anteil der Haltezeit (am Ende), in dem die Figur ausfadet
-  var FIGUREN = HALTEZEITEN.length;                     // Anzahl der Figuren (morph.js: p0 bis p4)
-  var figStart = STAB_ANFANG;
-  var SEG = [];                                             // Abschnitte der Figurenphase: Dunkel + Haltezeit je Figur, Zäsur
+  // ---------- Partitur des Kreislaufs ----------
+  // Alles, was im Kreislauf geschieht, steht hier als Daten; der Ablauf wird daraus abgespielt. Zeiten in Schlägen (BEAT = 1 Viertel).
+  // Bogen: Auftakt -> Steigerung (accelerando) -> Ausbruch (hektisch) -> Höhepunkt (langes Rot, Ausglimmen) -> Ruhe -> neu.
+  // Figuren stehen absolut still (kein Morph, keine Drehung/Skalierung/Versatz); jede Figur blitzt: schlagartig warmes Weiß mit
+  // kleinem Schein -> Rot -> Ausglimmen. Sicherheit (WCAG 2.3.1): Abstand zweier Blitzstarts mindestens MIN_ABSTAND (< 3 Blitze je Sekunde).
+  var BPM = 128;
+  var BEAT = 60 / BPM;                                  // s je Schlag (0,469 s)
+  var MIN_ABSTAND = 0.34;                               // s, kleinster erlaubter Abstand zweier Blitzstarts
+  function b(n) { return n * BEAT; }
+  //  was: 'stab' (Stab, gebogen und rot) oder 'pose' (pose 0..4 = Figur 1..5)
+  //  dunkel: Dunkelphase davor; halt: Dauer der Sichtbarkeit nach der Dunkelphase (inkl. Aus-/Einblenden)
+  //  Pose: weiss/rot = Sekunden warmes Weiß / Weiß->Rot, glow = Dauer des Scheins (s), schein = Stärke des Scheins (1 = normal), fade = Ausglimmen am Ende (s)
+  //  Stab: ein = sanftes Einblenden (s), aus = hartes Ausfaden am Ende (s), atmen = leichtes Atmen der Biegung
+  //  stoerung: [Beginn nach Start der Sichtbarkeit (s), Dauer (s), Stärke, Ziel 'm' Zeichen / 'v' Videobild / 'w' Schriftzug]
+  var SCORE = [
+    { was: 'stab', halt: b(0.75), aus: 0.06 },                                                                                  // Auftakt: Stab kurz, hartes Aus
+    // Steigerung: Haltezeiten 0,59 -> 0,35 s, Dunkelphasen 0,12 -> 0,06 s
+    { was: 'pose', pose: 0, dunkel: b(0.25),  halt: b(1.25), weiss: 0.05, rot: 0.12, glow: 0.06, schein: 1, fade: 0.24 },
+    { was: 'pose', pose: 1, dunkel: b(0.20),  halt: b(1.00), weiss: 0.05, rot: 0.12, glow: 0.06, schein: 1, fade: 0.20 },
+    { was: 'pose', pose: 2, dunkel: b(0.18),  halt: b(0.90), weiss: 0.05, rot: 0.11, glow: 0.06, schein: 1, fade: 0.18 },
+    { was: 'pose', pose: 3, dunkel: b(0.15),  halt: b(0.80), weiss: 0.05, rot: 0.10, glow: 0.06, schein: 1, fade: 0.16 },
+    { was: 'pose', pose: 4, dunkel: b(0.125), halt: b(0.75), weiss: 0.05, rot: 0.09, glow: 0.07, schein: 1.2, fade: 0.14 },
+    // Ausbruch: vier Blitze im Mindestabstand (Figuren 3, 1, 4, 2), stärkerer Schein; einmalige Signalstörung auf dem dritten Blitz
+    { was: 'pose', pose: 2, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.5, fade: 0.10 },
+    { was: 'pose', pose: 0, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.5, fade: 0.10 },
+    { was: 'pose', pose: 3, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10, stoerung: [0.0, 0.16, 0.7, 'mv'] },
+    { was: 'pose', pose: 1, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10 },
+    // Höhepunkt: Figur 5 (an beiden Fäusten), stärkster Blitz, steht lange rot, glimmt dann langsam aus
+    { was: 'pose', pose: 4, dunkel: b(0.25),  halt: b(3.75),  weiss: 0.10, rot: 0.22, glow: 0.18, schein: 3, fade: 0.60 },
+    // Ruhe: Dunkel, dann erscheint der Stab sanft (ohne Blitz, ohne Störung) und atmet
+    { was: 'stab', dunkel: b(1.0), halt: b(4.0), ein: 0.7, atmen: true }
+  ];
+  var FIGUREN = 5;                                      // Anzahl der Figuren (morph.js: p0 bis p4)
+  var TL = [], LOOP = 0, GLSCORE = [], BLITZE = [];     // Zeitplan, Zykluslänge, Störungen, Blitzstarts (aus SCORE errechnet)
   (function () {
-    var t = figStart;
-    function add(kind, dur, a, dark) { SEG.push({ kind: kind, t0: t, t1: t + dur, a: a, dark: dark || 0 }); t += dur; }
-    for (var i = 0; i < FIGUREN; i++) add('hold', DUNKELZEITEN[i] + HALTEZEITEN[i], i, DUNKELZEITEN[i]);
-    add('dark', ZAESUR);                                                                    // Dunkel nach Figur 5, dann Blitz des Stabs
-    SEG.end = t;
+    var t = 0;
+    SCORE.forEach(function (e, i) {
+      var ev = { e: e, i: i, t0: t, ts: t + (e.dunkel || 0), te: t + (e.dunkel || 0) + e.halt };
+      TL.push(ev); t = ev.te;
+      if (e.was === 'pose') BLITZE.push({ t: ev.ts, i: i, pose: e.pose });
+      if (e.stoerung) GLSCORE.push([ev.ts + e.stoerung[0], e.stoerung[1], e.stoerung[2], e.stoerung[3]]);
+    });
+    LOOP = t;
   })();
-  var backEnd = SEG.end, figEnd = backEnd - ZAESUR;
-  var LOOP = backEnd + STAB_ENDE;
   function loopState(u) {
-    var bend = 1, tt = 0, dur = 1, hold = -1, dark = false, stab = 1, wt = -1;
-    // Atmen des gebogenen Stabs nur in der Ruhe; an allen Übergängen auf null gezogen (kein Sprung)
-    var env = u < figStart ? seg(u, 0, 0.5) * (1 - seg(u, figStart - 0.5, 0.5))
-      : u >= backEnd + STAB_WEISS + STAB_ROT ? Math.min(seg(u, backEnd + STAB_WEISS + STAB_ROT, 0.6), 1 - seg(u, LOOP - 0.6, 0.6)) : 0;
-    var breath = 1 + 0.035 * env * Math.sin(u * Math.PI * 2 / 4.6);
-    if (u < figStart) { bend = breath; stab = 1 - seg(u, figStart - STAB_AUS, STAB_AUS); }
-    else if (u < backEnd) {
-      stab = 0;
-      for (var i = 0; i < SEG.length; i++) {
-        var s = SEG[i];
-        if (u < s.t0 || u >= s.t1) continue;
-        if (s.kind === 'dark') dark = true;
-        else {   // Dunkelphase, dann Blitz und Haltezeit der Figur
-          var d = u - s.t0;
-          if (d < s.dark) dark = true;
-          else { hold = s.a; tt = d - s.dark; dur = s.t1 - s.t0 - s.dark; }
-        }
-        break;
+    var r = { bend: 1, hold: -1, tt: 0, dur: 1, fx: null, dark: false, stab: 1, env: 0 };
+    for (var i = 0; i < TL.length; i++) {
+      var v = TL[i], e = v.e;
+      if (u < v.t0 || u >= v.te) continue;
+      if (u < v.ts) { r.dark = true; break; }
+      var d = u - v.ts;
+      if (e.was === 'pose') { r.hold = e.pose; r.tt = d; r.dur = e.halt; r.fx = e; }
+      else {
+        r.stab = e.ein ? ease3(seg(d, 0, e.ein)) : 1 - (e.aus ? seg(d, e.halt - e.aus, e.aus) : 0);
+        // Atmen nur in der Ruhe, an Anfang und Ende auf null gezogen (kein Sprung)
+        if (e.atmen) r.env = seg(d, 0.4, 1.0) * (1 - seg(d, e.halt - 0.8, 0.8));
+        r.bend = 1 + 0.035 * r.env * Math.sin(u * Math.PI * 2 / 4.6);
       }
-    } else { bend = breath; wt = u - backEnd; }   // Stab erscheint im Blitz (weiß -> rot) und steht
-    return { bend: bend, hold: hold, tt: tt, dur: dur, dark: dark, stab: stab, wt: wt };
+      break;
+    }
+    return r;
   }
+  function ease3(u) { return u * u * (3 - 2 * u); }
 
   var cur = { bend: 0 };
   function drive() { return cur.bend * 0.95; }
@@ -197,11 +206,8 @@
     }
     return [a, seed];
   }
-  // im Kreislauf: der Stab bricht mit einem Ruck, und einmal pro Runde zuckt der Schriftzug
-  function loopGL(cyc) {
-    var tw = rnd(cyc + 3) < 0.5 ? 1.2 + rnd(cyc + 9) * 1.6 : backEnd + 0.6 + rnd(cyc + 9) * 0.6;
-    return [[backEnd, 0.2, 0.45, 'mv'], [tw, 0.12, 0.35, 'w']];
-  }
+  // im Kreislauf: genau die Störungen der Partitur (einmaliger Akzent im Ausbruch)
+  function loopGL() { return GLSCORE; }
   var glV = 0;
 
   // ---------- Endzustand ohne Bewegung ----------
@@ -252,20 +258,20 @@
     var st;
     if (t < T.loop) {
       var b = inOut(seg(t, T.bend, T.bendDur));
-      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), hold: -1, stab: 1, wt: -1 };
+      st = { bend: b, col: clamp((t - T.bend - 0.35) / (T.bendDur - 0.35)), hold: -1, stab: 1 };
     } else {
       st = loopState((t - T.loop) % LOOP);
     }
     cur.bend = st.bend;
     if (Z) {
       if (st.dark) Z.dunkel();
-      else if (st.hold >= 0) Z.halte(st.hold, st.tt, st.dur);
-      else Z.set(st.bend, st.col == null ? 1 : st.col, st.stab, st.wt >= 0 ? [STAB_WEISS, STAB_ROT] : null, st.wt);
+      else if (st.hold >= 0) Z.halte(st.hold, st.tt, st.dur, st.fx);
+      else Z.set(st.bend, st.col == null ? 1 : st.col, st.stab);
     }
 
     // Signalstörungen
     var gt = t, gl = GL;
-    if (t >= T.loop) { gt = (t - T.loop) % LOOP; gl = loopGL(Math.floor((t - T.loop) / LOOP)); }
+    if (t >= T.loop) { gt = (t - T.loop) % LOOP; gl = loopGL(); }
     var gm = glAt(gt, gl, 'm'), gw = glAt(gt, gl, 'w');
     stM(gm[0], gm[1]); stW(gw[0], gw[1]);
     glV = glAt(gt, gl, 'v')[0];
