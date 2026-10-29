@@ -97,7 +97,7 @@
   function b(n) { return n * BEAT; }
   //  was: 'stab' (Stab, gebogen und rot) oder 'pose' (pose 0..4 = Figur 1..5)
   //  dunkel: Dunkelphase davor; halt: Dauer der Sichtbarkeit nach der Dunkelphase (inkl. Aus-/Einblenden)
-  //  Pose: weiss/rot = Sekunden warmes Weiß / Weiß->Rot, glow = Dauer des Scheins (s), schein = Stärke des Scheins (1 = normal), fade = Ausglimmen am Ende (s)
+  //  Pose: weiss/rot = Sekunden warmes Weiß / Weiß->Rot, glow = Dauer des Scheins (s), schein = Stärke/Helligkeit des Scheins (1 = normal), radius = Weichzeichner-Faktor des Scheins (Standard = schein; kleiner = enger am Umriss), fade = Ausglimmen am Ende (s)
   //  Stab: ein = sanftes Einblenden (s), aus = hartes Ausfaden am Ende (s), atmen = leichtes Atmen der Biegung
   //  stoerung: [Beginn nach Start der Sichtbarkeit (s), Dauer (s), Stärke, Ziel 'm' Zeichen / 'v' Videobild / 'w' Schriftzug]
   var SCORE = [
@@ -113,8 +113,8 @@
     { was: 'pose', pose: 0, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.5, fade: 0.10 },
     { was: 'pose', pose: 3, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10, stoerung: [0.0, 0.16, 0.7, 'mv'] },
     { was: 'pose', pose: 1, dunkel: b(0.125), halt: b(0.625), weiss: 0.05, rot: 0.08, glow: 0.08, schein: 1.6, fade: 0.10 },
-    // Höhepunkt: Figur 5 (an beiden Fäusten), stärkster Blitz, steht lange rot, glimmt dann langsam aus
-    { was: 'pose', pose: 4, dunkel: b(0.25),  halt: b(3.75),  weiss: 0.10, rot: 0.22, glow: 0.18, schein: 3, fade: 0.60 },
+    // Höhepunkt: Figur 4 (zusammengekrümmt in der Schlaufe), stärkster Blitz, steht lange rot, glimmt dann langsam aus
+    { was: 'pose', pose: 3, dunkel: b(0.25),  halt: b(3.75),  weiss: 0.10, rot: 0.22, glow: 0.18, schein: 3, radius: 1.3, fade: 0.60 },
     // Ruhe: Dunkel, dann erscheint der Stab sanft (ohne Blitz, ohne Störung) und atmet
     { was: 'stab', dunkel: b(1.0), halt: b(4.0), ein: 0.7, atmen: true }
   ];

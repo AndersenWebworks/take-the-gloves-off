@@ -95,7 +95,10 @@
         wFade = F.fade == null ? dur * 0.4 : Math.min(F.fade, dur), k = F.schein == null ? 1 : F.schein;
       showMorph(pathOf(S[HOLD[i]][0]), mix(WHITE, red, lin((tt - wWhite) / wRed)));
       mp.style.opacity = 1 - lin((tt - (dur - wFade)) / wFade);
-      if (tt < wGlow) mp.style.filter = 'drop-shadow(0 0 ' + (2.2 * k * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + Math.min(1, 0.9 * k * (1 - tt / wGlow)).toFixed(2) + '))';
+      if (tt < wGlow) {
+        var rk = F.radius == null ? k : F.radius, ds = 'drop-shadow(0 0 ' + (2.2 * rk * (1 - tt / wGlow)).toFixed(2) + 'px rgba(255,245,238,' + Math.min(1, 0.9 * k * (1 - tt / wGlow)).toFixed(2) + '))';
+        mp.style.filter = F.radius != null && k > 2 ? ds + ' ' + ds : ds;   // enger Schein mit Doppelschicht: bleibt hell, sitzt dicht am Umriss
+      }
     }
     function dunkel() {                                 // Bild aus (Dunkelphase): weder Stab noch Figur
       if (!mp) return;
