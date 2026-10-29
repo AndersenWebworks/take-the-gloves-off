@@ -13,7 +13,7 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
              -klein      = ohne Unterzeile, für sehr kleine Formate
   Farbfassungen: positiv (heller Grund), negativ (dunkler Grund), schwarz, weiss
   TTGO_profilbild_1080.png              Profilbild für Instagram und andere Kanäle
-  TTGO_bildmarke_animiert.svg           die Verwandlung als animierte Grafik für Websites
+  TTGO_bildmarke_animiert.svg           die Animation als animierte Grafik für Websites
   TTGO_bildmarke_animiert_negativ.svg   dasselbe für dunklen Grund
 
 02_Farben
@@ -29,8 +29,8 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
   Die festen Archivo-Schnitte sind aus Archivo abgeleitet und stehen unter derselben Lizenz.
 
 04_Bewegung
-  TTGO_zeichen-verwandlung_1080x1080.mp4        Verwandlung des Zeichens, quadratisch
-  TTGO_zeichen-verwandlung_story_1080x1920.mp4  dasselbe mit Schriftzug, für Story und Reel
+  TTGO_zeichen-verwandlung_1080x1080.mp4        Animation des Zeichens, quadratisch
+  TTGO_zeichen-verwandlung_story_1080x1920.mp4  dasselbe mit Schriftzug, für Story und Reel (beide: Stäbe, Luftartistik-Figuren im Blitz, Ruhe; gut 12 Sekunden)
   TTGO_loop_klar_*.mp4                          echte Ausschnitte aus den Proben, schwarz-weiß
   TTGO_loop_weich_*.mp4                         leicht weichgezeichnet
   TTGO_loop_boden_zeitlupe_960x540.mp4          Bodenarbeit in Zeitlupe, 3,5-mal langsamer
