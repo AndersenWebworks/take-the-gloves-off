@@ -173,19 +173,23 @@
     })(t0);
   }
 
-  // Probenvideo: eigenes Startbild, danach die normalen Bedienelemente
-  var pl = document.getElementById('player');
-  if (pl) {
+  // Videoplayer (Aufführung, Trailer-Entwurf): eigenes Startbild, danach die normalen Bedienelemente
+  var players = Array.prototype.slice.call(document.querySelectorAll('.player'));
+  players.forEach(function (pl) {
     var pv = pl.querySelector('video');
-    pl.querySelector('.pl-start').addEventListener('click', function () {
+    function stopOthers() {
       if (cur && !audio.paused) audio.pause();
+      players.forEach(function (o) { var ov = o.querySelector('video'); if (ov !== pv && !ov.paused) ov.pause(); });
+    }
+    pl.querySelector('.pl-start').addEventListener('click', function () {
+      stopOthers();
       pl.classList.add('on'); pv.controls = true;
       var pr = pv.play(); if (pr && pr.catch) pr.catch(function () {});
     });
-    pv.addEventListener('play', function () { if (cur && !audio.paused) audio.pause(); });
+    pv.addEventListener('play', stopOthers);
     audio.addEventListener('play', function () { if (!pv.paused) pv.pause(); });
     pv.addEventListener('ended', function () { pl.classList.remove('on'); pv.controls = false; pv.currentTime = 0; });
-  }
+  });
 
   // Filmstreifen: ziehen, Pfeile, Zähler, Fortschritt
   var strip = document.getElementById('galerie');

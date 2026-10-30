@@ -128,6 +128,8 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .pl-meta b { font-weight: 850; font-variation-settings: "wdth" 76; text-transform: uppercase; font-size: clamp(32px, 4vw, 56px); line-height: .9; }
 .pl-meta > span { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: #cfc9be; }
 .player.on .pl-start { opacity: 0; pointer-events: none; }
+.player + .player { margin-top: 18px; }
+.pl-cap { margin: 14px 0 0; font-size: 12px; letter-spacing: .08em; color: var(--muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .film { margin-top: 88px; }
 .film-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
