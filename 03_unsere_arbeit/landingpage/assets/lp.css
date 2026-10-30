@@ -233,6 +233,15 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .koop li { padding: 3px 0; }
 .koop a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .koop a:hover { color: var(--red); }
+.koop .koop-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 36px; margin-top: 6px; }
+.koop-logos li { padding: 0; }
+.koop-logos a { display: block; text-decoration: none; }
+.koop-logos img { display: block; width: auto; opacity: .9; transition: opacity .2s; }
+.koop-logos a:hover img, .koop-logos a:focus-visible img { opacity: 1; }
+.koop-logos .l-irct { height: 46px; }
+.koop-logos .l-mfh { height: 50px; }
+.koop-logos .l-haveno { height: 38px; }
+.koop-logos .koop-text a { text-decoration: underline; }
 .fotonachweis { margin: 14px 0 0; font-size: 12px; letter-spacing: .08em; color: var(--muted); }
 
 /* Schluss */
