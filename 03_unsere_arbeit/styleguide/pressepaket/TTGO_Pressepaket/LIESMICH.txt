@@ -12,7 +12,7 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
              -mittel     = Unterzeile in zwei Zeilen, für kleinere Formate
              -klein      = ohne Unterzeile, für sehr kleine Formate
   Farbfassungen: positiv (heller Grund), negativ (dunkler Grund), schwarz, weiss
-  TTGO_profilbild_1080.png              Profilbild für Instagram und andere Kanäle
+  TTGO_profilbild_1080.png              Profilbild für andere Kanäle (für Instagram siehe 06_Instagram)
   TTGO_bildmarke_animiert.svg           die Animation als animierte Grafik für Websites
   TTGO_bildmarke_animiert_negativ.svg   dasselbe für dunklen Grund
 
@@ -55,3 +55,15 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
   12  Ensemble mit gereckten Armen     schreib:maschine, Hamburg 2025
   Fotos: Anna Grünwald sowie Darsteller:innen bei den Proben
   Photos: Anna Grünwald and cast members during rehearsals
+
+06_Instagram
+  TTGO_insta_profilbild_1080.png        Profilbild, 1080 x 1080, die Bildmarke liegt innerhalb des Kreisausschnitts
+  feed/      1080 x 1350 (4:5)          Foto mit Titelzeile, Textkachel (Termine, Ankündigungen), Zitatkachel;
+                                        je als Beispiel und als leere Vorlage (Hintergrund und Logo, Textfläche frei)
+  story/     1080 x 1920 (9:16)         Story Termine und Story mit Foto, je als Beispiel und leer;
+                                        oben und unten bleiben 250 px frei (Profilzeile, Antwortfeld);
+                                        sicherheitszonen_auflage.png zeigt die Zonen durchsichtig zum Darüberlegen
+  highlights/ 1080 x 1920               Cover Termine, Einblicke, Presse, Team und leer; Motiv rund in der Mitte
+  reel/      1080 x 1920                Logoblitz: die Animation des Zeichens innerhalb der Sicherheitszonen
+  Die Beispiele nutzen nur Titel, Untertitel und „Neue Termine folgen“. Das Zitat ist ein Platzhalter.
+  Schriften zum Nachsetzen: ArchivoTTGO-Titel (Überschriften), ArchivoTTGO-Text (Fließtext), Courier Prime (Angaben).
