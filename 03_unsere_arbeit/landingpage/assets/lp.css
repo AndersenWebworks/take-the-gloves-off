@@ -219,6 +219,9 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .nl-s { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: #6b6760; }
 .nl-s a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .nl-s a:hover { color: var(--red); }
+.nl-i { margin: 18px 0 0; font-size: 15px; }
+.nl-i a { color: var(--ink); text-underline-offset: 3px; }
+.nl-i a:hover, .nl-i a:focus-visible { color: var(--red); }
 .cn { margin-top: 44px; padding: 22px 24px; background: #f6f2e9; border-left: 4px solid var(--red); }
 .cn .kicker { margin-bottom: 8px; }
 .cn p { margin: 0; font-size: 17px; line-height: 1.55; }
