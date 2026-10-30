@@ -174,18 +174,20 @@
   }
 
   // Probenvideo: eigenes Startbild, danach die normalen Bedienelemente
-  var pl = document.getElementById('player');
-  if (pl) {
+  var pls = Array.prototype.slice.call(document.querySelectorAll('.player'));
+  pls.forEach(function (pl) {
     var pv = pl.querySelector('video');
+    function others() { pls.forEach(function (o) { var v = o.querySelector('video'); if (v !== pv && !v.paused) v.pause(); }); }
     pl.querySelector('.pl-start').addEventListener('click', function () {
       if (cur && !audio.paused) audio.pause();
+      others();
       pl.classList.add('on'); pv.controls = true;
       var pr = pv.play(); if (pr && pr.catch) pr.catch(function () {});
     });
-    pv.addEventListener('play', function () { if (cur && !audio.paused) audio.pause(); });
+    pv.addEventListener('play', function () { if (cur && !audio.paused) audio.pause(); others(); });
     audio.addEventListener('play', function () { if (!pv.paused) pv.pause(); });
     pv.addEventListener('ended', function () { pl.classList.remove('on'); pv.controls = false; pv.currentTime = 0; });
-  }
+  });
 
   // Filmstreifen: ziehen, Pfeile, Zähler, Fortschritt
   var strip = document.getElementById('galerie');
