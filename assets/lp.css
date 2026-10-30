@@ -219,6 +219,9 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .nl-s { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: #6b6760; }
 .nl-s a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .nl-s a:hover { color: var(--red); }
+.nl-i { margin: 18px 0 0; font-size: 15px; }
+.nl-i a { color: var(--ink); text-underline-offset: 3px; }
+.nl-i a:hover, .nl-i a:focus-visible { color: var(--red); }
 .cn { margin-top: 44px; padding: 22px 24px; background: #f6f2e9; border-left: 4px solid var(--red); }
 .cn .kicker { margin-bottom: 8px; }
 .cn p { margin: 0; font-size: 17px; line-height: 1.55; }
@@ -245,6 +248,9 @@ html[lang="en"] .ruf q { quotes: "“" "”"; }
 .contact p { font-size: 18px; margin-top: 10px; }
 .contact a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .contact a:hover { color: var(--red); }
+.insta { display: inline-flex; align-items: center; gap: .45em; }
+.insta svg { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.insta svg .dot { fill: currentColor; stroke: none; }
 footer { border-top: 1px solid #222; padding: 34px 0 48px; font-size: 13px; color: var(--muted); }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
 footer .flogo { height: 34px; width: auto; }
