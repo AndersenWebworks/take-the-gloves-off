@@ -322,6 +322,7 @@ footer a:hover { color: var(--white); }
   .pl-btn { width: 72px; height: 72px; margin: -36px 0 0 -36px; }
   .pl-btn i { left: 29px; top: 23px; border-left-width: 20px; border-top-width: 13px; border-bottom-width: 13px; }
   .pl-meta { left: 16px; bottom: 14px; }
+  .pl-meta b { font-size: 24px; }
   .dates li { grid-template-columns: 1fr auto; row-gap: 4px; }
   .dates .d { grid-column: 1 / -1; font-size: 28px; }
   .dates .btn, .dates .note { grid-row: 2 / 4; grid-column: 2; }
