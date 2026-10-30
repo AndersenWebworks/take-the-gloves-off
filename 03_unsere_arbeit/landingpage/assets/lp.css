@@ -245,6 +245,9 @@ html[lang="en"] .ruf q { quotes: "“" "”"; }
 .contact p { font-size: 18px; margin-top: 10px; }
 .contact a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .contact a:hover { color: var(--red); }
+.insta { display: inline-flex; align-items: center; gap: .45em; }
+.insta svg { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.insta svg .dot { fill: currentColor; stroke: none; }
 footer { border-top: 1px solid #222; padding: 34px 0 48px; font-size: 13px; color: var(--muted); }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
 footer .flogo { height: 34px; width: auto; }
