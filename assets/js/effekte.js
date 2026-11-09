@@ -1,5 +1,5 @@
 /* Take the gloves off! – Bildeffekte mit three.js
- * biegen(el, video):    Das Videobild biegt sich in einem senkrechten Band wie der Stab im Zeichen.
+ * biegen(el, video):    Das Video- oder Standbild (img) biegt sich in einem senkrechten Band wie der Stab im Zeichen.
  * nachbild(el, video):  Bewegung hinterlässt ein rotes Nachbild, wie eine Langzeitbelichtung.
  * Fällt WebGL aus, bleibt das normale Video sichtbar.
  */
@@ -29,7 +29,9 @@
       renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
     } catch (e) { return null; }
     renderer.setPixelRatio(1);   // das Bild ist ohnehin weich, volle Auflösung kostet nur Rechenzeit
-    var tex = new T.VideoTexture(video);
+    var still = video.tagName === 'IMG';   // Standbild statt Video: einmal hochladen
+    var tex = still ? new T.Texture(video) : new T.VideoTexture(video);
+    var texReady = false;
     tex.minFilter = T.LinearFilter; tex.magFilter = T.LinearFilter;
 
     var uniforms = {
@@ -65,8 +67,11 @@
 
     var visible = false, t0 = performance.now(), ok = true;
     new IntersectionObserver(function (es) { visible = es[0].isIntersecting; }, { rootMargin: '100px' }).observe(el);
-    video.addEventListener('loadedmetadata', function () { uniforms.uVid.value.set(video.videoWidth, video.videoHeight); });
-    if (video.videoWidth) uniforms.uVid.value.set(video.videoWidth, video.videoHeight);
+    function vw() { return still ? video.naturalWidth : video.videoWidth; }
+    function vh() { return still ? video.naturalHeight : video.videoHeight; }
+    function ready() { return still ? (video.complete && video.naturalWidth > 0) : video.readyState >= 2; }
+    video.addEventListener(still ? 'load' : 'loadedmetadata', function () { uniforms.uVid.value.set(vw(), vh()); });
+    if (vw()) uniforms.uVid.value.set(vw(), vh());
 
     // Darf der Effekt das Video lesen? Sonst bleibt das normale Video sichtbar statt einer schwarzen Fläche.
     var probed = false;
@@ -82,7 +87,8 @@
     function loop() {
       if (!ok) return;
       requestAnimationFrame(loop);
-      if (!visible || video.readyState < 2) return;
+      if (!visible || !ready()) return;
+      if (still && !texReady) { texReady = true; uniforms.uVid.value.set(vw(), vh()); tex.needsUpdate = true; }
       if (!probed) { probed = true; if (!readable()) { ok = false; canvas.remove(); return; } }
       uniforms.uTime.value = (performance.now() - t0) / 1000;
       if (api.onFrame) api.onFrame(uniforms.uTime.value);
