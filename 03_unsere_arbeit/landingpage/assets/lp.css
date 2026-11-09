@@ -27,7 +27,7 @@ html[lang="de"] .lang [data-set="de"], html[lang="en"] .lang [data-set="en"] { o
 
 /* Videoflächen mit Effekt */
 .fxwrap { position: absolute; inset: 0; overflow: hidden; }
-.fxwrap video, .fxwrap canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fxwrap video, .fxwrap img, .fxwrap canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .fxwrap canvas.fx { opacity: 0; transition: opacity 1.2s; }
 .fxwrap.fx-on canvas.fx { opacity: 1; }
 
@@ -86,6 +86,8 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .rd.open { background-size: 0% 100%; color: inherit; transition: background-size .55s cubic-bezier(.7,0,.3,1), color .1s; }
 .dark .rd { --bar: #2c2b29; }
 .dark .rd:hover:not(.open) { background-image: linear-gradient(#45433f, #45433f); }
+.akte p a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.akte p a:hover { color: var(--red); }
 .akte .hint { font-family: "Courier Prime"; font-size: 15px; color: var(--red); margin: 0 0 .7em; transition: opacity .6s; }
 .hint.gone { opacity: 0; }
 .credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; margin: 2.2em 0 0; padding-top: 1.4em; border-top: 2px solid var(--ink); }
@@ -115,7 +117,6 @@ nav.bar .lang { margin-left: auto; flex: none; }
 
 /* Proben */
 .player { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
-.player.p2 { margin-top: 36px; }
 .player video { width: 100%; height: 100%; object-fit: contain; }
 .pl-start { position: absolute; inset: 0; border: 0; padding: 0; margin: 0; background: #000; color: var(--white); cursor: pointer; font: inherit; transition: opacity .6s; }
 .pl-start img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15) brightness(.72); transform: scale(1.02); transition: transform 1.6s cubic-bezier(.2,.7,.2,1), filter .8s; }
@@ -161,7 +162,7 @@ nav.bar .lang { margin-left: auto; flex: none; }
 /* Bühne: klarer Clip neben dem Text */
 .szene { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; }
 .szene .vid { margin: 0; position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
-.szene .vid video { width: 100%; height: 100%; object-fit: cover; }
+.szene .vid video, .szene .vid img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .szene .vid figcaption { position: absolute; left: 16px; bottom: 12px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: rgba(239,235,227,.75); }
 .h3 { font-size: clamp(48px, 6vw, 92px); margin: 0 0 24px; }
 .szene p { color: #d8d2c7; max-width: 44ch; }
@@ -229,6 +230,7 @@ nav.bar .lang { margin-left: auto; flex: none; }
 .cn p.alter { margin-top: 12px; font-weight: 700; font-size: 15px; }
 .koop { margin-top: 34px; font-size: 15px; line-height: 1.5; color: #4d4a45; }
 .koop .kicker { margin-bottom: 8px; color: #6b6760; }
+.koop .koop-p { margin: 16px 0 0; max-width: 52ch; }
 .koop ul { list-style: none; margin: 0; padding: 0; }
 .koop li { padding: 3px 0; }
 .koop a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
