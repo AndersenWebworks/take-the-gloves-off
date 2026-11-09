@@ -269,6 +269,9 @@ footer .flogo { height: 34px; width: auto; }
 footer nav { display: flex; gap: 22px; }
 footer a { text-decoration: none; letter-spacing: .1em; text-transform: uppercase; font-size: 12px; }
 footer a:hover { color: var(--white); }
+footer .fcredit { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+footer .fcredit a { color: inherit; border-bottom: 1px solid #444; }
+footer .fcredit a:hover { color: var(--white); }
 
 /* Songliste: 06, 12 und 13 öffnen sich zum Schriftspiel, wenn man hinkommt */
 .songs li.auf .zu, .songs li.auf .offen { grid-column: 2; display: grid; transition: grid-template-rows .9s cubic-bezier(.7,0,.2,1), opacity .6s; }
