@@ -14,7 +14,8 @@ elemente/         alle Bausteine einzeln (Zeichen, Schriftzug, rotes Anführungs
 
 Die Namen sagen, wozu eine Datei gehört: "dunkel" heißt helle Schrift und helles Zeichen für
 schwarze Flächen und Fotos, "hell" heißt dunkle Schrift und dunkles Zeichen für die
-papierweiße Fläche.
+papierweiße Fläche. Die Zeichen der "dunkel"-Fassungen sind weiß: Auf einer hellen Seite oder
+im hellen Vorschaufenster sind sie kaum zu sehen, über Schwarz oder einem Foto erscheinen sie.
 
 
 So entsteht ein Beitrag
@@ -38,8 +39,8 @@ So entsteht ein Beitrag
      Papierweiß, Zeichen und Schriftzug                              ueberlagerung_beitrag_hell
      Zitat auf Papierweiß, dazu das rote Anführungszeichen           ueberlagerung_beitrag_zitat-hell
      Text auf Schwarz, dazu die rote Linie                           ueberlagerung_beitrag_text-dunkel
-     Story auf Schwarz oder Foto                                     ueberlagerung_story_dunkel
-     Story auf Papierweiß                                            ueberlagerung_story_hell
+     Story auf Schwarz oder Foto, Zeichen oben links, Schriftzug unten rechts   ueberlagerung_story_dunkel
+     Story auf Papierweiß, Zeichen und Schriftzug                       ueberlagerung_story_hell
      Story mit Text auf Schwarz, dazu die rote Linie                 ueberlagerung_story_text-dunkel
      Highlight-Cover auf Schwarz, Ring und Zeichen in der Mitte      ueberlagerung_highlight_dunkel
      dasselbe mit roter Linie unter dem Titel                        ueberlagerung_highlight_dunkel-mit-linie
@@ -64,8 +65,7 @@ Quelle und Angaben      Courier Prime, Regular           etwa 32               S
 Titel und Zitat stehen eng, der Zeilenabstand liegt bei etwa 1. Die Größen sind ein Anfang;
 wenn ein Text länger ist, geht es mit kleinerer Schrift gut weiter, das Aussehen bleibt gleich.
 
-Ob Canva diese drei Schriften kennt, haben wir nicht überprüft: Tippe die Namen oben in die
-Schriftauswahl. Wenn eine fehlt, nimm eine kräftige, schmale Schrift für Titel und Zitat, eine
+Tippe die Namen in Canva in die Schriftauswahl. Wenn eine fehlt, nimm eine kräftige, schmale Schrift für Titel und Zitat, eine
 ruhige Schrift ohne Serifen für die Untertitel und eine Schreibmaschinenschrift für Quelle und
 Angaben. Die Beiträge bleiben gut lesbar, nur der Klang ist ein anderer.
 
@@ -97,8 +97,8 @@ Story und Reel: freie Zonen
 ---------------------------
 Bei Story und Reel verdeckt Instagram oben die Profilzeile und unten das Antwortfeld.
 Text und wichtige Teile bleiben deshalb zwischen 250 Pixel von oben und 250 Pixel von unten,
-also im Bereich von y = 250 bis y = 1670. Das Zeichen und der Schriftzug in den Überlagerungen
-sitzen schon dort.
+also im Bereich von y = 250 bis y = 1670. In den Story-Überlagerungen sitzt das Zeichen
+oben links bei y = 250 und der Schriftzug unten rechts bis y = 1670, beide schon innerhalb der Zonen.
 Zum Kontrollieren liegt im Ordner story/ (eine Ebene höher) die Datei
 TTGO_story_sicherheitszonen_auflage_1080x1920.png. Du legst sie als Hilfe über dein Design und
 nimmst sie vor dem Herunterladen wieder weg.
