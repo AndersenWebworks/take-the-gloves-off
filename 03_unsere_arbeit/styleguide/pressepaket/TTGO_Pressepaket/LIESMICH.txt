@@ -6,7 +6,7 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
 
 01_Logo
   svg/  für Druck und Website
-  png/  für Office-Programme und soziale Medien (transparenter Hintergrund)
+  png/  für Office-Programme und soziale Medien (transparenter Hintergrund, nur das Profilbild hat einen schwarzen Grund)
   Varianten: logo-zentriert (Standard), logo-quer, schriftzug, bildmarke
   Größen:    ohne Zusatz = groß, Unterzeile in einer Zeile
              -mittel     = Unterzeile in zwei Zeilen, für kleinere Formate
@@ -30,7 +30,7 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
 
 04_Bewegung
   TTGO_zeichen-verwandlung_1080x1080.mp4        Animation des Zeichens, quadratisch
-  TTGO_zeichen-verwandlung_story_1080x1920.mp4  dasselbe mit Schriftzug, für Story und Reel (beide: Stäbe, Luftartistik-Figuren im Blitz, Ruhe; gut 12 Sekunden)
+  TTGO_zeichen-verwandlung_story_1080x1920.mp4  dasselbe mit Schriftzug, für Story und Reel (beide: Stäbe, Luftartistik-Figuren im Blitz, Ruhe; knapp 13 Sekunden)
   TTGO_loop_klar_*.mp4                          echte Ausschnitte aus den Proben, schwarz-weiß
   TTGO_loop_weich_*.mp4                         leicht weichgezeichnet
   TTGO_loop_boden_zeitlupe_960x540.mp4          Bodenarbeit in Zeitlupe, 3,5-mal langsamer
@@ -67,7 +67,8 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
   reel/      1080 x 1920                Logoblitz: die Animation des Zeichens innerhalb der Sicherheitszonen
   canva/     für Canva              Bausteine zum Selbstgestalten, ohne eingebackenen Text:
                                         hintergruende/ (Schwarz und Papierweiß in Beitrags- und Story-Größe),
-                                        ueberlagerungen/ (durchsichtige Bilder mit Zeichen, Schriftzug, Zierelementen),
+                                        ueberlagerungen/ (durchsichtige Bilder mit Zeichen, Schriftzug, Zierelementen; zu jedem Beispiel eine
+                                        Fassung, auch für Fotos mit Abdunklung und für helle Flächen),
                                         elemente/ (Zeichen, Schriftzug, Anführungszeichen, Linie als PNG und SVG).
                                         TTGO_Canva_Anleitung.txt erklärt Schritt für Schritt, Maße, Schriften, Farben.
   Die Beispiele nutzen nur Titel, Untertitel und „Neue Termine folgen“. Das Zitat ist ein Platzhalter.
