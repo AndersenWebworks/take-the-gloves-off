@@ -1,0 +1,135 @@
+Instagram-Beiträge in Canva gestalten
+=====================================
+
+Diese Dateien sind für dich gemacht, Lilith: Du setzt in Canva eigenen Text und eigene Fotos
+ein, und die Beiträge sehen aus wie die Beispiele im Styleguide. Nachbauen musst du nichts.
+
+Was im Ordner liegt
+-------------------
+hintergruende/    einfarbige Flächen in Bühnenschwarz („schwarz“ im Dateinamen) und Bühnenweiß („papier“),
+                  in den Größen Beitrag und Story
+ueberlagerungen/  durchsichtige Bilder mit Zeichen, Schriftzug und kleinen Zierelementen an der
+                  richtigen Stelle. Du legst sie über eine Farbfläche oder über ein Foto.
+elemente/         alle Bausteine einzeln (Zeichen, Schriftzug, rotes Anführungszeichen, rote
+                  Linie), jeweils als PNG und als SVG, falls du etwas selbst anordnen willst.
+                  „helle-flaeche“ ist für hellen Grund gedacht, „dunkle-flaeche“ für dunklen Grund,
+                  „schwarz“ und „weiss“ sind einfarbig. „schriftzug-klein“ hat keine Unterzeile.
+
+Die Namen sagen, wozu eine Datei gehört: „dunkel“ heißt helle Schrift und helles Zeichen für
+schwarze Flächen und Fotos, „hell“ heißt dunkle Schrift und dunkles Zeichen für die
+bühnenweiße Fläche. Die Zeichen der „dunkel“-Fassungen sind weiß: Auf einer hellen Seite oder
+im hellen Vorschaufenster sind sie kaum zu sehen, über Schwarz oder einem Foto erscheinen sie.
+
+
+So entsteht ein Beitrag
+-----------------------
+1. In Canva „Design erstellen“ wählen, dann „Eigene Größe“. Breite und Höhe in Pixel eintragen:
+     Beitrag (Feed)            1080 x 1350
+     Story, Reel, Highlight    1080 x 1920
+   Die Größen stehen auch unten in der Übersicht.
+
+2. Dateien hochladen: links auf „Uploads“, dann die Dateien aus diesem Ordner hineinziehen.
+   Du brauchst für einen Beitrag nur zwei: eine Fläche oder ein Foto und eine Überlagerung.
+
+3. Zuerst die Unterlage setzen: entweder die Datei aus hintergruende/ oder dein eigenes Foto,
+   auf die ganze Fläche aufgezogen. Statt der Datei kannst du auch die Hintergrundfarbe der Seite
+   ändern und den Farbwert eintippen (Farben siehe unten).
+
+4. Darüber die Überlagerung ziehen und bis an die Ränder der Seite aufziehen. Sie ist
+   durchsichtig, du siehst nur Zeichen, Schriftzug und Zierelemente.
+   Welche Überlagerung wozu passt (der Name in der Datei endet mit der Größe, z. B. _1080x1350):
+     Beitrag auf Schwarz, Zeichen oben links, Schriftzug unten rechts   ueberlagerung_beitrag_dunkel
+     Beitrag auf Bühnenweiß, Zeichen und Schriftzug                     ueberlagerung_beitrag_hell
+     Zitat auf Bühnenweiß, dazu das rote Anführungszeichen              ueberlagerung_beitrag_zitat-hell
+     Zitat auf Schwarz, dazu das rote Anführungszeichen                 ueberlagerung_beitrag_zitat-dunkel
+     Text auf Schwarz, dazu die rote Linie                              ueberlagerung_beitrag_text-dunkel
+     Beitrag mit Foto, nur das Zeichen oben links                       ueberlagerung_beitrag_foto
+     Beitrag mit Foto, dazu die rote Linie unter dem Titel              ueberlagerung_beitrag_foto-mit-linie
+     Abdunklung am unteren Rand eines Fotos (Beitrag)                   ueberlagerung_beitrag_abdunklung
+     Story auf Schwarz, Zeichen oben links, Schriftzug unten rechts     ueberlagerung_story_dunkel
+     Story auf Bühnenweiß, Zeichen und Schriftzug                       ueberlagerung_story_hell
+     Story mit Text auf Schwarz, dazu die rote Linie                    ueberlagerung_story_text-dunkel
+     Story mit Foto, nur das Zeichen oben links                         ueberlagerung_story_foto
+     Story mit Foto, dazu die rote Linie unter dem Titel                ueberlagerung_story_foto-mit-linie
+     Abdunklung am unteren Rand eines Fotos (Story)                     ueberlagerung_story_abdunklung
+     Highlight-Cover auf Schwarz, Ring und Zeichen in der Mitte         ueberlagerung_highlight_dunkel
+     dasselbe mit roter Linie unter dem Titel                           ueberlagerung_highlight_dunkel-mit-linie
+     Highlight-Cover auf Bühnenweiß, Ring und Zeichen in der Mitte      ueberlagerung_highlight_hell
+     dasselbe mit roter Linie unter dem Titel                           ueberlagerung_highlight_hell-mit-linie
+
+   Bei Fotos liegt die Abdunklung zwischen Foto und Überlagerung, damit heller Text auf
+   hellen Bildstellen lesbar bleibt. Die Reihenfolge von unten nach oben: Foto, Abdunklung,
+   Überlagerung, Text. Wie stark die Abdunklung wirkt, lässt sich in Canva über die
+   Transparenz der Datei anpassen. Die Zeile „Foto: ...“ rechts oben ist Text, den du selbst
+   setzt: bei Beiträgen rechtsbündig am Rand (x = 1008, etwa y = 154), bei Stories y = 342.
+   Die rote Linie in den Foto-Fassungen sitzt für einen zweizeiligen Titel; bei anderen
+   Zeilenzahlen schiebst du sie nach oben oder unten, einzeln liegt sie in elemente/.
+
+   Profilbild und Reel gibt es als fertige Dateien (TTGO_insta_profilbild_1080.png und
+   reel/TTGO_reel_logoblitz_1080x1920.mp4 im Ordner 06_Instagram), die du unverändert hochlädst.
+
+5. Text schreiben (Textfeld in Canva) und an die freie Fläche setzen, siehe Schriften unten.
+   Der linke Rand ist bei allen Formaten 72 Pixel. Wenn du dich am Zeichen oben links
+   ausrichtest, passt es.
+
+6. Herunterladen als PNG (oder JPG) und bei Instagram hochladen.
+
+
+Schriften und Größen (Richtwerte)
+---------------------------------
+Zeile                   Schrift                          Größe in Canva        Farbe
+Titel (Großbuchstaben)  Archivo, Extra Bold              Beitrag etwa 160      Bühnenweiß #efebe3 oder Bühnenschwarz #0e0e0e
+                                                         Story etwa 175
+Zitat (schmal)          Archivo, Extra Bold, schmal      etwa 85               Bühnenschwarz #0e0e0e
+Untertitel, erste Zeile Archivo, SemiBold                etwa 40               Bühnenweiß #efebe3
+Untertitel, zweite Zeile Archivo, Regular                etwa 34               Bühnenweiß #efebe3
+Quelle und Angaben      Courier Prime, Regular           etwa 32               Bühnenschwarz #0e0e0e oder Bühnenweiß
+
+Titel und Zitat stehen eng, der Zeilenabstand liegt bei etwa 1. Die Größen sind ein Anfang;
+wenn ein Text länger ist, geht es mit kleinerer Schrift gut weiter, das Aussehen bleibt gleich.
+
+Tippe die Namen in Canva in die Schriftauswahl. Wenn eine fehlt, nimm eine kräftige, schmale Schrift für Titel und Zitat, eine
+ruhige Schrift ohne Serifen für die Untertitel und eine Schreibmaschinenschrift für Quelle und
+Angaben. Die Beiträge bleiben gut lesbar, nur der Klang ist ein anderer.
+
+Eigene Schriftdateien kannst du in Canva laut Canvas Hilfe nur mit einem bezahlten Tarif
+hochladen (Brand Kit). Wenn du so einen Tarif hast: Im Ordner 03_Schriften des Pressepakets
+liegen feste Schnitte (ArchivoTTGO-Titel, ArchivoTTGO-Text-Regular, ArchivoTTGO-Text-SemiBold,
+Courier Prime). Die Datei Archivo-VF.ttf nimmst du dafür nicht, Canva kann variable Schriften
+nicht laden.
+
+
+Farben
+------
+Bühnenschwarz  #0e0e0e
+Bühnenweiß     #efebe3
+Signalrot      #d22b1f
+In Canva: bei einer Farbe auf das „+“ tippen und den Wert eintragen.
+
+
+Maße auf einen Blick
+--------------------
+Profilbild            1080 x 1080   die Bildmarke ist schon im Kreisausschnitt eingepasst
+Beitrag (Feed)        1080 x 1350
+Story                 1080 x 1920   oben und unten 250 Pixel frei lassen
+Reel                  1080 x 1920   oben und unten 250 Pixel frei lassen
+Highlight-Cover       1080 x 1920   das Motiv rund in der Mitte
+
+
+Story und Reel: freie Zonen
+---------------------------
+Bei Story und Reel verdeckt Instagram oben die Profilzeile und unten das Antwortfeld.
+Text und wichtige Teile bleiben deshalb zwischen 250 Pixel von oben und 250 Pixel von unten,
+also im Bereich von y = 250 bis y = 1670. In den Story-Überlagerungen sitzt das Zeichen
+oben links bei y = 250 und der Schriftzug unten rechts bis y = 1670, beide schon innerhalb der Zonen.
+Zum Kontrollieren liegt im Ordner story/ (eine Ebene höher) die Datei
+TTGO_story_sicherheitszonen_auflage_1080x1920.png. Du legst sie als Hilfe über dein Design und
+nimmst sie vor dem Herunterladen wieder weg.
+
+
+Wenn etwas nicht klappt
+-----------------------
+Lässt sich eine SVG-Datei in Canva nicht laden oder sieht sie anders aus, nimm die PNG-Datei mit
+demselben Namen. Die PNG-Dateien sind durchsichtig, solange der Rest der Seite leer ist. Falls
+Canva Zeichen oder Überlagerung mit einem weißen oder schwarzen Kasten zeigt, schreib uns kurz,
+dann schauen wir nach einer anderen Fassung.
