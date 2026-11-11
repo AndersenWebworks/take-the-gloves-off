@@ -65,5 +65,10 @@ Wie alles zusammenspielt, zeigt der Styleguide (TTGO_Styleguide_2026-10.pdf).
                                         sicherheitszonen_auflage.png zeigt die Zonen durchsichtig zum Darüberlegen
   highlights/ 1080 x 1920               Cover Termine, Einblicke, Presse, Team und leer; Motiv rund in der Mitte
   reel/      1080 x 1920                Logoblitz: die Animation des Zeichens innerhalb der Sicherheitszonen
+  canva/     für Canva              Bausteine zum Selbstgestalten, ohne eingebackenen Text:
+                                        hintergruende/ (Schwarz und Papierweiß in Beitrags- und Story-Größe),
+                                        ueberlagerungen/ (durchsichtige Bilder mit Zeichen, Schriftzug, Zierelementen),
+                                        elemente/ (Zeichen, Schriftzug, Anführungszeichen, Linie als PNG und SVG).
+                                        TTGO_Canva_Anleitung.txt erklärt Schritt für Schritt, Maße, Schriften, Farben.
   Die Beispiele nutzen nur Titel, Untertitel und „Neue Termine folgen“. Das Zitat ist ein Platzhalter.
   Schriften zum Nachsetzen: ArchivoTTGO-Titel (Überschriften), ArchivoTTGO-Text (Fließtext), Courier Prime (Angaben).

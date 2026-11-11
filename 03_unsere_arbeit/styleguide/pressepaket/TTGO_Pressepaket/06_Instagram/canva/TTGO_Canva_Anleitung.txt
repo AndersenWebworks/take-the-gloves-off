@@ -1,0 +1,112 @@
+Instagram-Beiträge in Canva gestalten
+=====================================
+
+Diese Dateien sind für dich gemacht, Lilith: Du setzt in Canva eigenen Text und eigene Fotos
+ein, und die Beiträge sehen aus wie die Beispiele im Styleguide. Nachbauen musst du nichts.
+
+Was im Ordner liegt
+-------------------
+hintergruende/    einfarbige Flächen in Schwarz und Papierweiß, in den Größen Beitrag und Story
+ueberlagerungen/  durchsichtige Bilder mit Zeichen, Schriftzug und kleinen Zierelementen an der
+                  richtigen Stelle. Du legst sie über eine Farbfläche oder über ein Foto.
+elemente/         alle Bausteine einzeln (Zeichen, Schriftzug, rotes Anführungszeichen, rote
+                  Linie), jeweils als PNG und als SVG, falls du etwas selbst anordnen willst.
+
+Die Namen sagen, wozu eine Datei gehört: "dunkel" heißt helle Schrift und helles Zeichen für
+schwarze Flächen und Fotos, "hell" heißt dunkle Schrift und dunkles Zeichen für die
+papierweiße Fläche.
+
+
+So entsteht ein Beitrag
+-----------------------
+1. In Canva "Design erstellen" wählen, dann "Eigene Größe". Breite und Höhe in Pixel eintragen:
+     Beitrag (Feed)            1080 x 1350
+     Story, Reel, Highlight    1080 x 1920
+   Die Größen stehen auch unten in der Übersicht.
+
+2. Dateien hochladen: links auf "Uploads", dann die Dateien aus diesem Ordner hineinziehen.
+   Du brauchst für einen Beitrag nur zwei: eine Fläche oder ein Foto und eine Überlagerung.
+
+3. Zuerst die Unterlage setzen: entweder die Datei aus hintergruende/ oder dein eigenes Foto,
+   auf die ganze Fläche aufgezogen. Statt der Datei kannst du auch die Hintergrundfarbe der Seite
+   ändern und den Farbwert eintippen (Farben siehe unten).
+
+4. Darüber die Überlagerung ziehen und bis an die Ränder der Seite aufziehen. Sie ist
+   durchsichtig, du siehst nur Zeichen, Schriftzug und Zierelemente.
+   Welche Überlagerung zu welchem Beitrag passt:
+     Foto oder Schwarz, Zeichen oben links, Schriftzug unten rechts   ueberlagerung_beitrag_dunkel
+     Papierweiß, Zeichen und Schriftzug                              ueberlagerung_beitrag_hell
+     Zitat auf Papierweiß, dazu das rote Anführungszeichen           ueberlagerung_beitrag_zitat-hell
+     Text auf Schwarz, dazu die rote Linie                           ueberlagerung_beitrag_text-dunkel
+     Story auf Schwarz oder Foto                                     ueberlagerung_story_dunkel
+     Story auf Papierweiß                                            ueberlagerung_story_hell
+     Story mit Text auf Schwarz, dazu die rote Linie                 ueberlagerung_story_text-dunkel
+     Highlight-Cover auf Schwarz, Ring und Zeichen in der Mitte      ueberlagerung_highlight_dunkel
+     dasselbe mit roter Linie unter dem Titel                        ueberlagerung_highlight_dunkel-mit-linie
+
+5. Text schreiben (Textfeld in Canva) und an die freie Fläche setzen, siehe Schriften unten.
+   Der linke Rand ist bei allen Formaten 72 Pixel. Wenn du dich am Zeichen oben links
+   ausrichtest, passt es.
+
+6. Herunterladen als PNG (oder JPG) und bei Instagram hochladen.
+
+
+Schriften und Größen (Richtwerte)
+---------------------------------
+Zeile                   Schrift                          Größe in Canva        Farbe
+Titel (Großbuchstaben)  Archivo, Extra Bold              Beitrag etwa 160      Papier #efebe3 oder Schwarz #0e0e0e
+                                                         Story etwa 175
+Zitat (schmal)          Archivo, Extra Bold, schmal      etwa 85               Schwarz #0e0e0e
+Untertitel, erste Zeile Archivo, SemiBold                etwa 40               Papier #efebe3
+Untertitel, zweite Zeile Archivo, Regular                etwa 34               Papier #efebe3
+Quelle und Angaben      Courier Prime, Regular           etwa 32               Schwarz #0e0e0e oder Papier
+
+Titel und Zitat stehen eng, der Zeilenabstand liegt bei etwa 1. Die Größen sind ein Anfang;
+wenn ein Text länger ist, geht es mit kleinerer Schrift gut weiter, das Aussehen bleibt gleich.
+
+Ob Canva diese drei Schriften kennt, haben wir nicht überprüft: Tippe die Namen oben in die
+Schriftauswahl. Wenn eine fehlt, nimm eine kräftige, schmale Schrift für Titel und Zitat, eine
+ruhige Schrift ohne Serifen für die Untertitel und eine Schreibmaschinenschrift für Quelle und
+Angaben. Die Beiträge bleiben gut lesbar, nur der Klang ist ein anderer.
+
+Eigene Schriftdateien kannst du in Canva laut Canvas Hilfe nur mit einem bezahlten Tarif
+hochladen (Brand Kit). Wenn du so einen Tarif hast: Im Ordner 03_Schriften des Pressepakets
+liegen feste Schnitte (ArchivoTTGO-Titel, ArchivoTTGO-Text-Regular, ArchivoTTGO-Text-SemiBold,
+Courier Prime). Die Datei Archivo-VF.ttf nimmst du dafür nicht, Canva kann variable Schriften
+nicht laden.
+
+
+Farben
+------
+Schwarz    #0e0e0e
+Papier     #efebe3
+Rot        #d22b1f
+In Canva: bei einer Farbe auf das "+" tippen und den Wert eintragen.
+
+
+Maße auf einen Blick
+--------------------
+Profilbild            1080 x 1080   die Bildmarke ist schon im Kreisausschnitt eingepasst
+Beitrag (Feed)        1080 x 1350
+Story                 1080 x 1920   oben und unten 250 Pixel frei lassen
+Reel                  1080 x 1920   oben und unten 250 Pixel frei lassen
+Highlight-Cover       1080 x 1920   das Motiv rund in der Mitte
+
+
+Story und Reel: freie Zonen
+---------------------------
+Bei Story und Reel verdeckt Instagram oben die Profilzeile und unten das Antwortfeld.
+Text und wichtige Teile bleiben deshalb zwischen 250 Pixel von oben und 250 Pixel von unten,
+also im Bereich von y = 250 bis y = 1670. Das Zeichen und der Schriftzug in den Überlagerungen
+sitzen schon dort.
+Zum Kontrollieren liegt im Ordner story/ (eine Ebene höher) die Datei
+TTGO_story_sicherheitszonen_auflage_1080x1920.png. Du legst sie als Hilfe über dein Design und
+nimmst sie vor dem Herunterladen wieder weg.
+
+
+Wenn etwas nicht klappt
+-----------------------
+Lässt sich eine SVG-Datei in Canva nicht laden oder sieht sie anders aus, nimm die PNG-Datei mit
+demselben Namen. Die PNG-Dateien sind durchsichtig, solange der Rest der Seite leer ist. Falls
+Canva Zeichen oder Überlagerung mit einem weißen oder schwarzen Kasten zeigt, schreib uns kurz,
+dann schauen wir nach einer anderen Fassung.
